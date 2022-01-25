@@ -5,9 +5,7 @@ class Tournament:
         self.place = place
         self.date = date
         self.description = description
-
-    def add_player(self, player):
-        self.player = player
+        self.players = []
 
 
 class Player:
