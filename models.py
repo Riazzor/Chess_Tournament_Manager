@@ -7,6 +7,9 @@ class Tournament:
         self.description = description
         self.players = []
 
+    def add_player(self, player):
+        self.players.append(player)
+
 
 class Player:
     def __init__(self, name, surname, birthdate, gender, rank, score=0) -> None:

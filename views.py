@@ -15,3 +15,15 @@ class View:
             'description': description,
         }
         return tournament_information
+
+    def get_player_info(self) -> dict:
+        print('Entrez les informations du joueur:')
+        player_information = {
+            'name': input('Nom du joueur : '),
+            'surname': input('Prénom du joueur : '),
+            'birthdate': input('Date de naissance du joueur : '),
+            'gender': input('Genre du joueur : '),
+            'rank': input('Classement général du joueur : '),
+            'score': 0
+        }
+        return player_information
