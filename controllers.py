@@ -185,6 +185,15 @@ class ReportController:
 
         return None
 
+    # XXX Not tested
+    def tournament_report(self, tournaments: List[Tournament]) -> None:
+        # We retrieve only the name and date for the view
+        tournament_lists = [
+            f'{tournament.name}  -  {tournament.date}' for tournament in tournaments
+        ]
+        self.report_view.tournament_report(tournament_lists)
+        return None
+
 
 if __name__ == '__main__':
     view = View()

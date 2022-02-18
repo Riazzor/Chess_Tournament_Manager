@@ -120,12 +120,20 @@ class ReportView:
             choice = input('1. Alphabétique \n2. Classement ')
         return choice
 
-    def players_report(self, players: list):
+    def players_report(self, players: list) -> None:
         """
         List of current tournament's players.
         """
         for player in players:
             print(player)
+
+        return None
+
+    def tournament_report(self, tournament_list) -> None:
+        for tournament in tournament_list:
+            print(tournament)
+
+        return None
 
 
 if __name__ == '__main__':
