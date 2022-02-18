@@ -1,31 +1,69 @@
-
 from typing import List
-from models import Match, Player, Tournament
+from models import Match, Player, Round, Tournament
 from views import View
 
 
 class Controller:
     def __init__(self, view) -> None:
-        self.view = view
+        self.view: View = view
 
     def run(self) -> None:
+        self.initiate_tournament()
+
+        for i in range(self.tournament.nbr_round):
+            # Round
+            self.sort_players()
+            self.create_round()
+
+            if self.view.start_matchs(round_nbr=i+1):
+                self.play_matchs()
+
+            for match in self.round.matchs:
+                self.enter_score(match)
+
+        return None
+
+    def initiate_tournament(self) -> None:
+        # Create tournament and players:
         self.create_tournament()
         # Player
-        for _ in range(2):
+        for _ in range(8):
             player = self.create_player()
             self.tournament.add_player(player)
         print(self.tournament)
 
-        # Match
-        self.sort_for_match()
-        match_list = self.create_matchs()
-        print(match_list)
+        return None
+
+    def play_matchs(self) -> None:
+        self.round.start_round()
+
+        self.view.end_matchs()
+
+        self.round.end_round()
 
         return None
 
-    def sort_for_match(self) -> None:
+    def enter_score(self, match: Match) -> None:
+        player1, player2 = match.player1, match.player2
+        winner = self.view.enter_match_winner(
+            f'{player1.name} {player1.surname}',
+            f'{player2.name} {player2.surname}',
+        )
+        if winner == '1':
+            # Player 1 is the winner
+            scores = (1, 0)
+        elif winner == '2':
+            scores = (0, 1)
+        else:
+            # Draw
+            scores = (0.5, 0.5)
+
+        match.update_score(*scores)
+        return None
+
+    def sort_players(self) -> None:
         """
-        At the end of each round, we sort the players
+        At the beginning of each round, we sort the players
         according to their score.
         If two players have the same score,
         we use their rank.
@@ -35,6 +73,8 @@ class Controller:
             key=(lambda player: (player.score, player.rank))
         )
         self.tournament.players = players_list
+
+        return None
 
     def create_tournament(self) -> None:
         tournament_info = self.view.get_tournament_info()
@@ -61,6 +101,19 @@ class Controller:
 
         return player
 
+    def create_round(self) -> None:
+        round_info = self.view.get_round_info()
+
+        # Match
+        match_list = self.create_matchs()
+
+        self.round = Round(
+            round_info['name'],
+            match_list
+        )
+
+        return None
+
     def create_matchs(self) -> List[Match]:
         """
         The swiss system is used :
@@ -79,6 +132,7 @@ class Controller:
             (player1, player2)
             for player1, player2 in zip(firs_half, second_half)
         ]
+
         matchs = list()
         for match in match_list:
             player1, player2 = match
@@ -87,6 +141,8 @@ class Controller:
             )
 
         # should not happen but this part handles an odd number of players :
+        # since it's not supposed to happen, I'm importing choice here so it
+        # happens only on rare occasion instead of each application launch.
         if is_not_even:
             from random import choice
             # a random player will be choosed to play a second time.
@@ -104,7 +160,85 @@ class Controller:
 if __name__ == '__main__':
     view = View()
     controller = Controller(view)
-    controller.run()
+    # controller.run()
+    players = [
+        Player(
+            'the',
+            'player1',
+            'birthdate',
+            'gender',
+            1,
+        ),
+        Player(
+            'the',
+            'player2',
+            'birthdate',
+            'gender',
+            2,
+        ),
+        Player(
+            'the',
+            'player3',
+            'birthdate',
+            'gender',
+            3,
+        ),
+        Player(
+            'the',
+            'player4',
+            'birthdate',
+            'gender',
+            4,
+        ),
+        Player(
+            'the',
+            'player5',
+            'birthdate',
+            'gender',
+            5,
+        ),
+        Player(
+            'the',
+            'player6',
+            'birthdate',
+            'gender',
+            6,
+        ),
+        Player(
+            'the',
+            'player7',
+            'birthdate',
+            'gender',
+            7,
+        ),
+        Player(
+            'the',
+            'player8',
+            'birthdate',
+            'gender',
+            8,
+        ),
+    ]
+
+    controller.tournament = Tournament(
+        'Tournament',
+        'place',
+        'date',
+        'description',
+    )
+
+    for player in players:
+        controller.tournament.add_player(player)
+
+    for i in range(controller.tournament.nbr_round):
+        print(f'Tour {i+1} : ')
+        controller.sort_players()
+        controller.create_round()
+        controller.play_matchs()
+        for match in controller.round.matchs:
+            controller.enter_score(match)
+        print(controller.round)
+
     # tournament = controller.create_tournament()
     # print(tournament)
 
