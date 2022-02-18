@@ -127,6 +127,10 @@ class ReportView:
         for player in players:
             print(player)
 
+    def round_report(self, rounds: list):
+        for round in rounds:
+            print(round)
+
         return None
 
     def tournament_report(self, tournament_list) -> None:

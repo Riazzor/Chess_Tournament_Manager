@@ -194,6 +194,14 @@ class ReportController:
         self.report_view.tournament_report(tournament_lists)
         return None
 
+    # XXX Not tested
+    def round_report(self, rounds: List[Round]) -> None:
+        round_lists = [
+            f'{round.name} : {round.start_round_time}  --  {round.end_round_time}' for round in rounds
+        ]
+        self.report_view.round_report(round_lists)
+        return None
+
 
 if __name__ == '__main__':
     view = View()
