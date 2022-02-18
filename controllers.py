@@ -1,6 +1,6 @@
 from typing import List
 from models import Match, Player, Round, Tournament
-from views import View
+from views import ReportView, View
 
 
 class Controller:
@@ -157,87 +157,119 @@ class Controller:
         return matchs
 
 
+class ReportController:
+    def __init__(self) -> None:
+        self.report_view = ReportView()
+
+    def players_report(self, players: List[Player]) -> None:
+
+        choice = self.report_view.report_sort_choice()
+
+        # Alphabétique
+        if choice == '1':
+            players_list = sorted(
+                players,
+                key=lambda player: (player.name, player.surname)
+            )
+        # Ranking
+        else:
+            players_list = sorted(
+                players,
+                key=lambda player: player.rank
+            )
+        # We retrieve only the name and surname for the view
+        players_list = [
+            f'{player.name} {player.surname}' for player in players_list]
+
+        self.report_view.players_report(players_list)
+
+        return None
+
+
 if __name__ == '__main__':
     view = View()
     controller = Controller(view)
     # controller.run()
     players = [
         Player(
-            'the',
-            'player1',
-            'birthdate',
-            'gender',
-            1,
-        ),
-        Player(
-            'the',
-            'player2',
-            'birthdate',
-            'gender',
-            2,
-        ),
-        Player(
-            'the',
-            'player3',
-            'birthdate',
-            'gender',
-            3,
-        ),
-        Player(
-            'the',
-            'player4',
+            'Pointud',
+            'Patrick',
             'birthdate',
             'gender',
             4,
         ),
         Player(
-            'the',
-            'player5',
+            'Sanika',
+            'Florent',
             'birthdate',
             'gender',
-            5,
+            1,
         ),
         Player(
-            'the',
-            'player6',
+            'Pointud',
+            'Émilie',
+            'birthdate',
+            'gender',
+            2,
+        ),
+        Player(
+            'Sanika',
+            'Nathan',
+            'birthdate',
+            'gender',
+            3,
+        ),
+        Player(
+            'Boyer',
+            'Marie-Huguette',
             'birthdate',
             'gender',
             6,
         ),
         Player(
-            'the',
-            'player7',
+            'Pointud',
+            'Magdeline',
             'birthdate',
             'gender',
-            7,
+            5,
         ),
         Player(
-            'the',
-            'player8',
+            'Sanika',
+            'Johvani',
             'birthdate',
             'gender',
             8,
         ),
+        Player(
+            'Sanika',
+            'Marina',
+            'birthdate',
+            'gender',
+            7,
+        ),
     ]
 
-    controller.tournament = Tournament(
-        'Tournament',
-        'place',
-        'date',
-        'description',
-    )
+    # controller.tournament = Tournament(
+    #     'Tournament',
+    #     'place',
+    #     'date',
+    #     'description',
+    # )
 
-    for player in players:
-        controller.tournament.add_player(player)
+    # for player in players:
+    #     controller.tournament.add_player(player)
 
-    for i in range(controller.tournament.nbr_round):
-        print(f'Tour {i+1} : ')
-        controller.sort_players()
-        controller.create_round()
-        controller.play_matchs()
-        for match in controller.round.matchs:
-            controller.enter_score(match)
-        print(controller.round)
+    # for i in range(controller.tournament.nbr_round):
+    #     print(f'Tour {i+1} : ')
+    #     controller.sort_players()
+    #     controller.create_round()
+    #     controller.play_matchs()
+    #     for match in controller.round.matchs:
+    #         controller.enter_score(match)
+    #     print(controller.round)
+
+    report_controller = ReportController()
+    report_controller.players_report(players)
 
     # tournament = controller.create_tournament()
     # print(tournament)

@@ -111,6 +111,23 @@ class View:
         return choice
 
 
+class ReportView:
+
+    def report_sort_choice(self) -> str:
+        print('Dans quel ordre voulez-vous votre rapport :')
+        choice = ''
+        while choice not in ('1', '2'):
+            choice = input('1. Alphabétique \n2. Classement ')
+        return choice
+
+    def players_report(self, players: list):
+        """
+        List of current tournament's players.
+        """
+        for player in players:
+            print(player)
+
+
 if __name__ == '__main__':
     good_date = '10/12/2022'
     bad_dates = ['', 'aze', 'az/78/8858', '78945/7/8',
