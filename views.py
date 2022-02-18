@@ -1,3 +1,21 @@
+import re
+
+
+def is_date_format(input_date) -> bool:
+    """
+    This function check that the input is a date so we
+    can use datetime on the input.
+    """
+    date_pattern = re.compile(r'^(\d{2})\/(\d{2})\/(\d{4})$')
+
+    good_date = date_pattern.fullmatch(input_date)
+    if good_date:
+        day, month, year = [int(group) for group in good_date.groups()]
+        if 0 < day < 32 and 0 < month < 13 and 1900 < year < 2025:
+            return True
+    return False
+
+
 class View:
     def __init__(self) -> None:
         pass
@@ -6,7 +24,9 @@ class View:
         print('Entrez les informations du tournoi :')
         name = input('Nom du tournoi : ')
         place = input('Emplacement : ')
-        date = input('Date du tournoi : ')
+        date = ''
+        while not is_date_format(date):
+            date = input('Date du tournoi (jj/mm/aaaa): ')
         description = input('Description :\n')
         tournament_information = {
             'name': name,
@@ -19,13 +39,25 @@ class View:
 
     def get_player_info(self, default_score=0) -> dict:
         print('===================\nEntrez les informations du joueur :')
+
+        name = input('Nom du joueur : ')
+        surname = input('Prénom du joueur : ')
+        birthdate = ''
+        while not is_date_format(birthdate):
+            birthdate = input('Date de naissance du joueur : ')
+        gender = input('Genre du joueur : ')
+        rank = input('Classement général du joueur : ')
+        score = input(
+            'Entrez le score du joueur (0 par défaut) : '
+        ) or default_score
+
         player_information = {
-            'name': input('Nom du joueur : '),
-            'surname': input('Prénom du joueur : '),
-            'birthdate': input('Date de naissance du joueur : '),
-            'gender': input('Genre du joueur : '),
-            'rank': input('Classement général du joueur : '),
-            'score': input('Entrez le score du joueur (0 par défaut) : ') or 0
+            'name': name,
+            'surname': surname,
+            'birthdate': birthdate,
+            'gender': gender,
+            'rank': rank,
+            'score': score,
         }
 
         return player_information
@@ -77,3 +109,13 @@ class View:
             )
 
         return choice
+
+
+if __name__ == '__main__':
+    good_date = '10/12/2022'
+    bad_dates = ['', 'aze', 'az/78/8858', '78945/7/8',
+                 '-5', '12/13/2022', '32/15/2020']
+    for date in bad_dates:
+        assert is_date_format(date) is False, date
+
+    assert is_date_format(good_date) is True, good_date
