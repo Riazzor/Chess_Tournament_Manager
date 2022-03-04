@@ -9,7 +9,7 @@ class View:
         options = {
             '1': 'Commencez un tournoi',
             '2': 'Affichez les rapports',
-            '3': 'Quitter'
+            'q': 'Quitter'
         }
         menu = ''
         for index, text in options.items():
@@ -109,10 +109,10 @@ class ReportView:
     def main_menu(self) -> str:
         menu = '1. Rapport joueurs\n'
         menu += '2. Rapport tournois\n'
-        menu += '3. Quitter\n\t-> '
+        menu += 'q. Quitter\n\t-> '
         choice = input(menu)
-        while choice not in ('1', '2', '3'):
-            print('Choisissez entre 1/2/3')
+        while choice not in ('1', '2', 'q'):
+            print('Choisissez entre 1/2/q')
             choice = input(menu)
 
         return choice
@@ -121,10 +121,10 @@ class ReportView:
         menu = '1. Liste des joueurs du tournoi\n'
         menu += '2. Liste des matchs du tournoi\n'
         menu += '3. Liste des tours du tournoi\n'
-        menu += '4. Retour menu précédent.\n\t-> '
+        menu += 'q. Retour au menu précédent.\n\t-> '
         choice = input(menu)
-        while choice not in ('1', '2', '3', '4'):
-            print('Choisissez entre 1/2/3/4')
+        while choice not in ('1', '2', '3', 'q'):
+            print('Choisissez entre 1/2/3/q')
             choice = input(menu)
 
         return choice
@@ -137,26 +137,37 @@ class ReportView:
 
         return choice
 
-    def players_report(self, players: list) -> None:
+    def players_report(self, players: list) -> str:
         """
         List of current tournament's players.
         """
-        for player in players:
-            print(player)
+        for index, player in enumerate(players):
+            print(f'{index}. {player}')
 
-    def round_report(self, rounds: list):
-        for round in rounds:
-            print(round)
+        # No other choice possible yet in this report.
+        return 'q'
 
-        return None
+    def round_report(self, rounds: list) -> str:
+        """
+        List of current tournament's rounds.
+        """
+        for index, round in enumerate(rounds):
+            print(f'{index}. {round}')
 
-    def match_report(self, matchs: list) -> None:
-        for match in matchs:
-            print(match)
+        # No other choice possible yet in this report.
+        return 'q'
 
-        return None
+    def match_report(self, matchs: list) -> str:
+        """
+        List of current tournament's matchs.
+        """
+        for index, match in enumerate(matchs):
+            print(f'{index}. {match}')
 
-    def tournament_report(self, tournament_list) -> int:
+        # No other choice possible yet in this report.
+        return 'q'
+
+    def tournament_report(self, tournament_list) -> str:
         """
         Displays the given tournament list.
         Users choose one of the tournament and the
@@ -168,6 +179,10 @@ class ReportView:
         tournament_menu = [
             f'{index}. {tournament} \n' for index, tournament in zip(choice_index, tournament_list)
         ]
+        choice_index += ('q')
+        tournament_menu.append(
+            'q. Retour au menu précédent.'
+        )
         possible_choice = '/'.join(choice_index)
         tournament_menu = ''.join(tournament_menu)
         tournament_menu += '\n\t-> '
@@ -175,9 +190,10 @@ class ReportView:
         tournament_choice = input(tournament_menu)
         while tournament_choice not in choice_index:
             tournament_choice = input(
-                f'Choisissez entre ({possible_choice})\n\t-> ')
+                f'Choisissez entre ({possible_choice})\n\t-> '
+            )
 
-        return int(tournament_choice)
+        return tournament_choice
 
 
 if __name__ == '__main__':

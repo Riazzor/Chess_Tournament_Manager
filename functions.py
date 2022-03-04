@@ -1,4 +1,5 @@
 import re
+import functools
 
 
 def is_date_format(input_date) -> bool:
@@ -14,3 +15,18 @@ def is_date_format(input_date) -> bool:
         if 0 < day < 32 and 0 < month < 13 and 1900 < year < 2025:
             return True
     return False
+
+
+def sub_menu(func):
+    """
+    Decorator for menu functions. Allows navigation back
+    to previous menu.
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        quit = False
+        while not quit:
+            choice = func(*args, **kwargs)
+            if choice == 'q':
+                quit = True
+    return wrapper

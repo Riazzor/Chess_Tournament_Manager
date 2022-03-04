@@ -1,4 +1,5 @@
 from typing import List
+from functions import sub_menu
 from database.database import Player_DB, Tournament_DB
 from models import Match, Player, Round, Tournament
 from views import ReportView, View
@@ -169,27 +170,30 @@ class ReportController:
         self.tournament_database = Tournament_DB(database)
         self.player_database = Player_DB(database)
 
-    def main_report(self) -> None:
+    @sub_menu
+    def main_report(self) -> str:
         # some function to choose what to display.
         choice = self.report_view.main_menu()
         report_option = {
             '1': self.actors_report,
             '2': self.tournament_report,
             # how to go back to previous menu (main)
-            '3': 'My future brilliant way to go back to previous menu',
+            'q': lambda quit: None,
         }
 
         report_option[choice]()
 
-        return None
+        return choice
 
+    @sub_menu
     def actors_list(self) -> List[Player]:
         """
         Fetch all players in database.
         """
         return self.player_database.list_players()
 
-    def actors_report(self) -> None:
+    @sub_menu
+    def actors_report(self) -> str:
         """
         Displays all known players name and surname.
         """
@@ -212,11 +216,11 @@ class ReportController:
         players_info = [
             f'{player.name} {player.surname}' for player in players_list
         ]
-        self.report_view.players_report(players_info)
+        choice = self.report_view.players_report(players_info)
 
-        return None
+        return choice
 
-    def tournament_report(self) -> None:
+    def tournament_report(self) -> str:
         """
         First display all tournament and ask for choice on follow up.
         """
@@ -226,10 +230,10 @@ class ReportController:
             '1': self.players_report,
             '2': self.matchs_report,
             '3': self.rounds_report,
-            '4': 'My future brilliant way to go back to previous menu',
+            'q': lambda quit: None,
         }
         report_option[choice](tournament)
-        return None
+        return choice
 
     # XXX Not tested
 
@@ -250,7 +254,8 @@ class ReportController:
     def players_list(self, tournament: Tournament) -> List[Player]:
         return tournament.players
 
-    def players_report(self, tournament: Tournament) -> None:
+    @sub_menu
+    def players_report(self, tournament: Tournament) -> str:
         """
         Displays all players name and surname from a given tournament.
         """
@@ -275,9 +280,9 @@ class ReportController:
         players_info = [
             f'{player.name} {player.surname}' for player in players_list]
 
-        self.report_view.players_report(players_info)
+        choice = self.report_view.players_report(players_info)
 
-        return None
+        return choice
 
     def matchs_list(self, tournament: Tournament) -> List[Match]:
         """
@@ -293,14 +298,15 @@ class ReportController:
 
         return match_list
 
+    @sub_menu
     def matchs_report(self, tournament: Tournament) -> None:
         """
         Displays Matchs from a given tournament.
         """
         matchs = self.matchs_list(tournament)
-        self.report_view.match_report(matchs)
+        choice = self.report_view.match_report(matchs)
 
-        return None
+        return choice
 
     def rounds_list(self, tournament: Tournament) -> List[Round]:
         """
@@ -309,7 +315,8 @@ class ReportController:
         return tournament.rounds
 
     # XXX Not tested
-    def rounds_report(self, tournament: Tournament) -> None:
+    @sub_menu
+    def rounds_report(self, tournament: Tournament) -> str:
         """
         Displays all the rounds from a given tournament
         """
@@ -317,8 +324,8 @@ class ReportController:
         round_lists = [
             f'{round.name} : {round.start_round_time}  --  {round.end_round_time}' for round in rounds
         ]
-        self.report_view.round_report(round_lists)
-        return None
+        choice = self.report_view.round_report(round_lists)
+        return choice
 
 
 if __name__ == '__main__':
