@@ -20,6 +20,20 @@ class View:
     def __init__(self) -> None:
         pass
 
+    def prompt_choice(self):
+        options = {
+            '1': 'Commencez un tournoi',
+            '2': 'Affichez les rapports',
+            '3': 'Quitter'
+        }
+        menu = ''
+        for index, text in options.items():
+            menu += f'{index}. {text}\n'
+        option = ''
+        while option not in ('1', '2', '3'):
+            option = input()
+        return option
+
     def get_tournament_info(self) -> dict:
         print('Entrez les informations du tournoi :')
         name = input('Nom du tournoi : ')
@@ -71,12 +85,6 @@ class View:
 
         return round_information
 
-    def prompt_choice(self, option):
-        options = {
-            1: 'Tournoi',
-            2: 'Quitter'
-        }
-
     def start_matchs(self, round_nbr) -> bool:
         print(f'Commencer le round {round_nbr} ?')
         choice = ''
@@ -113,11 +121,35 @@ class View:
 
 class ReportView:
 
+    def main_menu(self) -> str:
+        menu = '1. Rapport joueurs\n'
+        menu += '2. Rapport tournois\n'
+        menu += '3. Quitter\n\t-> '
+        choice = input(menu)
+        while choice not in ('1', '2', '3'):
+            print('Choisissez entre 1/2/3')
+            choice = input(menu)
+
+        return choice
+
+    def menu_detail_tournament(self):
+        menu = '1. Liste des joueurs du tournoi\n'
+        menu += '2. Liste des matchs du tournoi\n'
+        menu += '3. Liste des tours du tournoi\n'
+        menu += '4. Retour menu précédent.\n\t-> '
+        choice = input(menu)
+        while choice not in ('1', '2', '3', '4'):
+            print('Choisissez entre 1/2/3/4')
+            choice = input(menu)
+
+        return choice
+
     def report_sort_choice(self) -> str:
         print('Dans quel ordre voulez-vous votre rapport :')
         choice = ''
         while choice not in ('1', '2'):
             choice = input('1. Alphabétique \n2. Classement ')
+
         return choice
 
     def players_report(self, players: list) -> None:
@@ -133,11 +165,34 @@ class ReportView:
 
         return None
 
-    def tournament_report(self, tournament_list) -> None:
-        for tournament in tournament_list:
-            print(tournament)
+    def match_report(self, matchs: list) -> None:
+        for match in matchs:
+            print(match)
 
         return None
+
+    def tournament_report(self, tournament_list) -> int:
+        """
+        Displays the given tournament list.
+        Users choose one of the tournament and the
+        choice is returned.
+        """
+        choice_index = (
+            str(index) for index in range(1, len(tournament_list) + 1)
+        )
+        tournament_menu = [
+            f'{index}. {tournament} \n' for index, tournament in zip(choice_index, tournament_list)
+        ]
+        possible_choice = '/'.join(choice_index)
+        tournament_menu = ''.join(tournament_menu)
+        tournament_menu += '\n\t-> '
+
+        tournament_choice = input(tournament_menu)
+        while tournament_choice not in choice_index:
+            tournament_choice = input(
+                f'Choisissez entre ({possible_choice})\n\t-> ')
+
+        return int(tournament_choice)
 
 
 if __name__ == '__main__':
@@ -148,3 +203,14 @@ if __name__ == '__main__':
         assert is_date_format(date) is False, date
 
     assert is_date_format(good_date) is True, good_date
+
+    view = ReportView()
+    choice = view.tournament_report(
+        [
+            'Paris Game  -  05/03/2022',
+            'London Game  -  05/04/2022',
+            'Moscow Game  -  05/05/2022',
+            'Berlin Game  -  05/06/2022',
+        ]
+    )
+    print(choice)

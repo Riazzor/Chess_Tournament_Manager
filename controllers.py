@@ -1,4 +1,5 @@
 from typing import List
+from database.database import Player_DB, Tournament_DB
 from models import Match, Player, Round, Tournament
 from views import ReportView, View
 
@@ -163,15 +164,103 @@ class Controller:
 
 
 class ReportController:
-    def __init__(self) -> None:
+    def __init__(self, database) -> None:
         self.report_view = ReportView()
+        self.tournament_database = Tournament_DB(database)
+        self.player_database = Player_DB(database)
 
-    def players_report(self, players: List[Player]) -> None:
+    def main_report(self) -> None:
+        # some function to choose what to display.
+        choice = self.report_view.main_menu()
+        report_option = {
+            '1': self.actors_report,
+            '2': self.tournament_report,
+            # how to go back to previous menu (main)
+            '3': 'My future brilliant way to go back to previous menu',
+        }
 
-        choice = self.report_view.report_sort_choice()
+        report_option[choice]()
 
+        return None
+
+    def actors_list(self) -> List[Player]:
+        """
+        Fetch all players in database.
+        """
+        return self.player_database.list_players()
+
+    def actors_report(self) -> None:
+        """
+        Displays all known players name and surname.
+        """
+        players_list = self.actors_list()
+        order_choice = self.report_view.report_sort_choice()
         # Alphabétique
-        if choice == '1':
+        # dict : 1 nom, 2: rank
+        if order_choice == '1':
+            players_list = sorted(
+                players_list,
+                key=lambda player: (player.name, player.surname)
+            )
+        # Ranking
+        else:
+            players_list = sorted(
+                players_list,
+                key=lambda player: (player.rank)
+            )
+
+        players_info = [
+            f'{player.name} {player.surname}' for player in players_list
+        ]
+        self.report_view.players_report(players_info)
+
+        return None
+
+    def tournament_report(self) -> None:
+        """
+        First display all tournament and ask for choice on follow up.
+        """
+        tournament = self.tournaments_list_choice()
+        choice = self.report_view.menu_detail_tournament()
+        report_option = {
+            '1': self.players_report,
+            '2': self.matchs_report,
+            '3': self.rounds_report,
+            '4': 'My future brilliant way to go back to previous menu',
+        }
+        report_option[choice](tournament)
+        return None
+
+    # XXX Not tested
+
+    def tournaments_list_choice(self) -> Tournament:
+        """
+        Diplays all Tournaments and return the users' choice
+        """
+        tournaments_list = self.tournament_database.list_tournaments()
+        # We retrieve only the name and date for the view
+        tournaments_info = [
+            f'{tournament.name}  -  {tournament.date}' for tournament in tournaments_list
+        ]
+        tournament_choice = self.report_view.tournament_report(
+            tournaments_info
+        )
+        return tournaments_list(tournament_choice - 1)
+
+    def players_list(self, tournament: Tournament) -> List[Player]:
+        return tournament.players
+
+    def players_report(self, tournament: Tournament) -> None:
+        """
+        Displays all players name and surname from a given tournament.
+        """
+        # 2 id player
+        # 3 players.
+        # XXX Correct this method
+        order_choice = self.report_view.report_sort_choice()
+        players = self.players_list(tournament)
+        # Alphabétique
+        if order_choice == '1':
             players_list = sorted(
                 players,
                 key=lambda player: (player.name, player.surname)
@@ -180,27 +269,51 @@ class ReportController:
         else:
             players_list = sorted(
                 players,
-                key=lambda player: player.rank
+                key=lambda player: (player.rank)
             )
         # We retrieve only the name and surname for the view
-        players_list = [
+        players_info = [
             f'{player.name} {player.surname}' for player in players_list]
 
-        self.report_view.players_report(players_list)
+        self.report_view.players_report(players_info)
 
         return None
 
-    # XXX Not tested
-    def tournament_report(self, tournaments: List[Tournament]) -> None:
-        # We retrieve only the name and date for the view
-        tournament_lists = [
-            f'{tournament.name}  -  {tournament.date}' for tournament in tournaments
-        ]
-        self.report_view.tournament_report(tournament_lists)
+    def matchs_list(self, tournament: Tournament) -> List[Match]:
+        """
+        Fetchs Matchs from a given tournament.
+        Matchs are not stored in database.
+        So we fetch the rounds from given tournament
+        and create a list with all their respective matchs
+        """
+        rounds = self.rounds_list(tournament)
+        match_list = []
+        for round_ in rounds:
+            match_list.extend(round_.matchs)
+
+        return match_list
+
+    def matchs_report(self, tournament: Tournament) -> None:
+        """
+        Displays Matchs from a given tournament.
+        """
+        matchs = self.matchs_list(tournament)
+        self.report_view.match_report(matchs)
+
         return None
 
+    def rounds_list(self, tournament: Tournament) -> List[Round]:
+        """
+        Fetchs Rounds from a given tournament.
+        """
+        return tournament.rounds
+
     # XXX Not tested
-    def round_report(self, rounds: List[Round]) -> None:
+    def rounds_report(self, tournament: Tournament) -> None:
+        """
+        Displays all the rounds from a given tournament
+        """
+        rounds = self.rounds_list(tournament)
         round_lists = [
             f'{round.name} : {round.start_round_time}  --  {round.end_round_time}' for round in rounds
         ]
@@ -212,7 +325,7 @@ if __name__ == '__main__':
     view = View()
     controller = Controller(view)
     # controller.run()
-    players = [
+    players_list = [
         Player(
             'Pointud',
             'Patrick',
@@ -291,7 +404,7 @@ if __name__ == '__main__':
     #     print(controller.round)
 
     report_controller = ReportController()
-    report_controller.players_report(players)
+    report_controller.players_report(players_list)
 
     # tournament = controller.create_tournament()
     # print(tournament)
