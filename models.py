@@ -1,24 +1,11 @@
 from datetime import datetime
-
-
-class Tournament:
-    def __init__(self, name, place, date, description, nbr_round=4, players=None) -> None:
-        self.name = name
-        self.place = place
-        self.date = date
-        self.description = description
-        self.nbr_round = nbr_round
-        self.players = players or []
-
-    def add_player(self, player):
-        self.players.append(player)
-
-    def __repr__(self) -> str:
-        return f'Tournament : {self.name} \n{self.description}'
+from typing import List
 
 
 class Player:
-    def __init__(self, name, surname, birthdate, gender, rank, score=0) -> None:
+    def __init__(
+        self, name: str, surname: str, birthdate: str, gender: str, rank: int, score: int = 0
+    ) -> None:
         self.name = name
         self.surname = surname
         self.birthdate = birthdate
@@ -30,8 +17,43 @@ class Player:
         return f'Player : {self.name} {self.surname}'
 
 
+class Match:
+    """
+    A match contains the instances of the
+    two players.
+
+    It contains one method to update the players scores.
+
+    The init takes just the player and the score is entered
+    by the referee at the end of the game.
+    """
+
+    def __init__(self, player1: Player, player2: Player) -> None:
+        self.player1 = player1
+        self.player2 = player2
+
+    def update_score(self, score1, score2) -> None:
+        self.player1.score += score1
+        self.player2.score += score2
+        return None
+
+    def __repr__(self) -> str:
+        return (
+            f'<Match> instance : {self.player1.name} {self.player1.surname}' +
+            '  -vs-  ' +
+            f'{self.player2.name} {self.player2.surname}'
+        )
+
+    def __str__(self) -> str:
+        return (
+            f'Match : \n{self.player1.name} {self.player1.surname}' +
+            '  -vs-  ' +
+            f'{self.player2.name} {self.player2.surname}'
+        )
+
+
 class Round:
-    def __init__(self, name, matchs) -> None:
+    def __init__(self, name: str, matchs: List[Match]) -> None:
         self.name = name
         self.matchs = matchs
         self.start_round_time = ''
@@ -59,36 +81,25 @@ class Round:
         return representation
 
 
-class Match:
-    """
-    A match contains the instances of the
-    two players.
+class Tournament:
+    def __init__(
+        self, name: str, place: str, date: str,
+        description: str, nbr_round: int = 4,
+        rounds: List[Round] = None, players: List[Player] = None,
+    ) -> None:
+        self.name = name
+        self.place = place
+        self.date = date
+        self.description = description
+        self.nbr_round = nbr_round
+        self.rounds = rounds or []
+        self.players = players or []
 
-    It contains one method to update the players scores.
+    def add_player(self, player):
+        self.players.append(player)
 
-    The init takes just the player and the score is entered
-    by the referee at the end of the game.
-    """
-
-    def __init__(self, player1: Player, player2: Player) -> None:
-        self.player1 = player1
-        self.player2 = player2
-
-    def update_score(self, score1, score2) -> None:
-        self.player1.score += score1
-        self.player2.score += score2
-        return None
+    def add_round(self, round_: Round):
+        self.rounds.append(round_)
 
     def __repr__(self) -> str:
-        return (
-            f'Match : {self.player1.name} {self.player1.surname}' +
-            '  -vs-  ' +
-            f'{self.player2.name} {self.player2.surname}'
-        )
-
-    def __str__(self) -> str:
-        return (
-            f'Match : {self.player1.name} {self.player1.surname}' +
-            '  -vs-  ' +
-            f'{self.player2.name} {self.player2.surname}'
-        )
+        return f'Tournament : {self.name} \n{self.description}'

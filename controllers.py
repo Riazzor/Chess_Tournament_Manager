@@ -28,8 +28,9 @@ class Controller:
         self.create_tournament()
         # Player
         for _ in range(8):
-            player = self.create_player()
-            self.tournament.add_player(player)
+            self.tournament.add_player(
+                self.create_player()
+            )
         print(self.tournament)
 
         return None
@@ -110,6 +111,10 @@ class Controller:
         self.round = Round(
             round_info['name'],
             match_list
+        )
+
+        self.tournament.add_round(
+            self.round
         )
 
         return None
