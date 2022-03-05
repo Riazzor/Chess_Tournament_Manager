@@ -38,15 +38,18 @@ class TournamentSerializer:
 
         rounds = tournament_dict.pop('rounds')
         players = tournament_dict.pop('players')
-        for round_dict in rounds:
-            round_list.append(
-                self.round_serializer.deserialize(round_dict)
-            )
 
-        for player_dict in players:
-            player_list.append(
-                self.player_serializer.deserialize(player_dict)
-            )
+        if rounds:
+            for round_dict in rounds:
+                round_list.append(
+                    self.round_serializer.deserialize(round_dict)
+                )
+
+        if players:
+            for player_dict in players:
+                player_list.append(
+                    self.player_serializer.deserialize(player_dict)
+                )
         tournament_dict['rounds'] = round_list
         tournament_dict['players'] = player_list
 

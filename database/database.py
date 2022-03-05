@@ -101,7 +101,8 @@ class Player_DB:
 
 if __name__ == '__main__':
     from tinydb.storages import MemoryStorage
-    database.drop_tables()
+    from random import choices
+    # database.drop_tables()
     database = TinyDB(
         storage=MemoryStorage
     )
@@ -154,6 +155,13 @@ if __name__ == '__main__':
         ),
         Player(
             'Sanika',
+            'Marina',
+            'birthdate',
+            'gender',
+            7,
+        ),
+        Player(
+            'Sanika',
             'Johvani',
             'birthdate',
             'gender',
@@ -161,43 +169,104 @@ if __name__ == '__main__':
         ),
         Player(
             'Sanika',
-            'Marina',
+            'Mathéo',
             'birthdate',
             'gender',
-            7,
+            9,
+        ),
+        Player(
+            'Sanika',
+            'Thomas',
+            'birthdate',
+            'gender',
+            10,
+        ),
+        Player(
+            'Sanika',
+            'Anthony',
+            'birthdate',
+            'gender',
+            11,
+        ),
+        Player(
+            'Sanika',
+            'Olivier',
+            'birthdate',
+            'gender',
+            12,
         ),
     ]
-    tournament1 = Tournament(
-        name='Paris Game',
-        place='Paris 11',
-        date='11/10/2022',
-        description='''
-        This is a long long long long
-        long long long long long long
-        long long long long long long
-        description.
-        ''',
-    )
-    for player in players:
-        tournament1.add_player(player)
-    tournament2 = Tournament(
-        name='London Game',
-        place='London district',
-        date='26/04/2025',
-        description='''
-        This is a long long long long
-        long long long long long long
-        long long long long long long
-        description.
-        ''',
-    )
+    tournaments = [
+        Tournament(
+            name='Paris Game',
+            place='Paris 11',
+            date='10/11/2022',
+            description='''
+            This is a long long long long
+            long long long long long long
+            long long long long long long
+            description.
+            ''',
+        ),
+        Tournament(
+            name='London Game',
+            place='London street',
+            date='11/10/2022',
+            description='''
+            This is a long long long long
+            long long long long long long
+            long long long long long long
+            description.
+            ''',
+        ),
+        Tournament(
+            name='New York Game',
+            place='New York Ave',
+            date='03/08/2023',
+            description='''
+            This is a long long long long
+            long long long long long long
+            long long long long long long
+            description.
+            ''',
+        ),
+        Tournament(
+            name='Los Angeles Game',
+            place='Los Angeles 11',
+            date='01/05/2022',
+            description='''
+            This is a long long long long
+            long long long long long long
+            long long long long long long
+            description.
+            ''',
+        ),
+    ]
+    for tournament in tournaments:
+        [tournament.add_player(player) for player in choices(players, k=8)]
+    # tournament2 = Tournament(
+    #     name='London Game',
+    #     place='London district',
+    #     date='26/04/2025',
+    #     description='''
+    #     This is a long long long long
+    #     long long long long long long
+    #     long long long long long long
+    #     description.
+    #     ''',
+    # )
     # tournament_field = {
     #     'place': 'London',
     #     'date': '20/04/2022',
     # }
     tournament_db = Tournament_DB(database, tournament_serializer)
-    tournament_db.create_tournament(tournament1)
-    tournament_db.create_tournament(tournament2)
+    player_db = Player_DB(database, player_serializer)
+    for tournament in tournaments:
+        tournament_db.create_tournament(tournament)
+    for player in players:
+        player_db.create_player(player)
+    # tournament_db.create_tournament(tournament1)
+    # tournament_db.create_tournament(tournament2)
     # print(tournament_db.read_tournament(tournament2['name']))
     # fetch_tournament = tournament_db.read_tournament('Paris Game')
     # tournament_list = tournament_db.list_tournaments()
@@ -215,14 +284,14 @@ if __name__ == '__main__':
     # assert tournament_db.delete_tournament(good_tournament['name']) is True
     # assert tournament_db.delete_tournament(good_tournament['name']) is False
     # print(tournament_db.read_tournament('London Game'))
-    from pprint import pprint
-    pprint(tournament_db.list_tournaments())
+    # from pprint import pprint
+    # pprint(tournament_db.list_tournaments())
     # PLAYER
 
-    player_db = Player_DB(database, player_serializer)
-    for player in players:
-        player_db.create_player(player)
+    # player_db = Player_DB(database, player_serializer)
+    # for player in players:
+    #     player_db.create_player(player)
     # for player in players:
     #     print(player_db.read_player(player.name))
 
-    pprint(player_db.list_players())
+    # pprint(player_db.list_players())
