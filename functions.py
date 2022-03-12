@@ -1,5 +1,19 @@
 import re
 import functools
+from database.database import PlayerDB, database
+
+from database.database import TournamentDB
+from database.serializer import PlayerSerializer, TournamentSerializer
+
+
+def table_factory(table: str):
+    if table == 'tournaments':
+        tournament_serializer = TournamentSerializer()
+        return TournamentDB(database, tournament_serializer)
+    elif table == 'players':
+        player_serializer = PlayerSerializer()
+        return PlayerDB(database, player_serializer)
+    raise ValueError(f'{table} is not a valid value')
 
 
 def is_date_format(input_date) -> bool:

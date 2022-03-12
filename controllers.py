@@ -1,6 +1,5 @@
-from typing import List
-from functions import sub_menu
-from database.database import Player_DB, Tournament_DB
+from typing import List, Optional
+from functions import sub_menu, table_factory
 from models import Match, Player, Round, Tournament
 from views import ReportView, View
 
@@ -165,27 +164,26 @@ class Controller:
 
 
 class ReportController:
-    def __init__(self, database) -> None:
+    def __init__(self) -> None:
         self.report_view = ReportView()
-        self.tournament_database = Tournament_DB(database)
-        self.player_database = Player_DB(database)
+        self.tournament_database = table_factory('tournaments')
+        self.player_database = table_factory('players')
 
     @sub_menu
-    def main_report(self) -> str:
+    def run(self) -> str:
         # some function to choose what to display.
         choice = self.report_view.main_menu()
         report_option = {
             '1': self.actors_report,
             '2': self.tournament_report,
             # how to go back to previous menu (main)
-            'q': lambda quit: None,
+            'q': lambda: None,
         }
 
         report_option[choice]()
 
         return choice
 
-    @sub_menu
     def actors_list(self) -> List[Player]:
         """
         Fetch all players in database.
@@ -220,11 +218,14 @@ class ReportController:
 
         return choice
 
+    @sub_menu
     def tournament_report(self) -> str:
         """
         First display all tournament and ask for choice on follow up.
         """
         tournament = self.tournaments_list_choice()
+        if not tournament:
+            return 'q'
         choice = self.report_view.menu_detail_tournament()
         report_option = {
             '1': self.players_report,
@@ -237,7 +238,7 @@ class ReportController:
 
     # XXX Not tested
 
-    def tournaments_list_choice(self) -> Tournament:
+    def tournaments_list_choice(self) -> Optional[Tournament]:
         """
         Diplays all Tournaments and return the users' choice
         """
@@ -249,7 +250,10 @@ class ReportController:
         tournament_choice = self.report_view.tournament_report(
             tournaments_info
         )
-        return tournaments_list(tournament_choice - 1)
+        if tournament_choice == 'q':
+            return
+        index = int(tournament_choice) - 1
+        return tournaments_list[index]
 
     def players_list(self, tournament: Tournament) -> List[Player]:
         return tournament.players
@@ -328,67 +332,42 @@ class ReportController:
         return choice
 
 
+class MainController:
+    def __init__(self, view: View, tournament_controller: Controller, report_controller: ReportController) -> None:
+        self.view = view
+        self.tournament_controller = tournament_controller
+        self.report_controller = report_controller
+
+    def run(self) -> None:
+        self.view.start_programm()
+        self.main_prompt()
+        self.view.end_programm()
+
+    @sub_menu
+    def main_prompt(self) -> str:
+        choice = self.view.prompt_choice()
+        choices = {
+            '1': self.tournament_controller.run,
+            '2': self.report_controller.run,
+            'q': lambda: None,
+        }
+        choices[choice]()
+        return choice
+
+
 if __name__ == '__main__':
     view = View()
     controller = Controller(view)
     # controller.run()
     players_list = [
-        Player(
-            'Pointud',
-            'Patrick',
-            'birthdate',
-            'gender',
-            4,
-        ),
-        Player(
-            'Sanika',
-            'Florent',
-            'birthdate',
-            'gender',
-            1,
-        ),
-        Player(
-            'Pointud',
-            'Émilie',
-            'birthdate',
-            'gender',
-            2,
-        ),
-        Player(
-            'Sanika',
-            'Nathan',
-            'birthdate',
-            'gender',
-            3,
-        ),
-        Player(
-            'Boyer',
-            'Marie-Huguette',
-            'birthdate',
-            'gender',
-            6,
-        ),
-        Player(
-            'Pointud',
-            'Magdeline',
-            'birthdate',
-            'gender',
-            5,
-        ),
-        Player(
-            'Sanika',
-            'Johvani',
-            'birthdate',
-            'gender',
-            8,
-        ),
-        Player(
-            'Sanika',
-            'Marina',
-            'birthdate',
-            'gender',
-            7,
-        ),
+        Player('Pointud', 'Patrick', 'birthdate', 'gender', 4),
+        Player('Sanika', 'Florent', 'birthdate', 'gender', 1),
+        Player('Pointud', 'Émilie', 'birthdate', 'gender', 2),
+        Player('Sanika', 'Nathan', 'birthdate', 'gender', 3),
+        Player('Boyer', 'Marie-Huguette', 'birthdate', 'gender', 6),
+        Player('Pointud', 'Magdeline', 'birthdate', 'gender', 5),
+        Player('Sanika', 'Johvani', 'birthdate', 'gender', 8),
+        Player('Sanika', 'Marina', 'birthdate', 'gender', 7),
     ]
 
     # controller.tournament = Tournament(

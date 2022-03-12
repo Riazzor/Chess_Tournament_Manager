@@ -5,6 +5,16 @@ class View:
     def __init__(self) -> None:
         pass
 
+    def start_programm(self) -> None:
+        print('=' * 30)
+        print('Lancement du programme'.center(30))
+        print('=' * 30)
+        
+    def end_programm(self) -> None:
+        print('=' * 30)
+        print('Fin du programme'.center(30), 'Bonne journée.'.center(30), sep='\n')
+        print('=' * 30)
+
     def prompt_choice(self):
         options = {
             '1': 'Commencez un tournoi',
@@ -14,9 +24,11 @@ class View:
         menu = ''
         for index, text in options.items():
             menu += f'{index}. {text}\n'
-        option = ''
-        while option not in ('1', '2', '3'):
-            option = input()
+        menu += '\t-> '
+        option = input(menu)
+        while option not in ('1', '2', 'q'):
+            print('Choisissez parmis 1/2/q')
+            option = input(menu)
         return option
 
     def get_tournament_info(self) -> dict:
@@ -107,6 +119,7 @@ class View:
 class ReportView:
 
     def main_menu(self) -> str:
+        print('=' * 30, 'Menu rapport'.center(30), '=' * 30, sep='\n')
         menu = '1. Rapport joueurs\n'
         menu += '2. Rapport tournois\n'
         menu += 'q. Quitter\n\t-> '
@@ -133,7 +146,7 @@ class ReportView:
         print('Dans quel ordre voulez-vous votre rapport :')
         choice = ''
         while choice not in ('1', '2'):
-            choice = input('1. Alphabétique \n2. Classement ')
+            choice = input('1. Alphabétique \n2. Classement\n\t-> ')
 
         return choice
 
@@ -141,7 +154,9 @@ class ReportView:
         """
         List of current tournament's players.
         """
-        for index, player in enumerate(players):
+        print('=' * 30, 'Liste des joueurs'.center(30), '=' * 30, sep='\n')
+
+        for index, player in enumerate(players, 1):
             print(f'{index}. {player}')
 
         # No other choice possible yet in this report.
@@ -151,7 +166,9 @@ class ReportView:
         """
         List of current tournament's rounds.
         """
-        for index, round in enumerate(rounds):
+        print('=' * 30, 'Liste des tours'.center(30), '=' * 30, sep='\n')
+
+        for index, round in enumerate(rounds, 1):
             print(f'{index}. {round}')
 
         # No other choice possible yet in this report.
@@ -161,7 +178,9 @@ class ReportView:
         """
         List of current tournament's matchs.
         """
-        for index, match in enumerate(matchs):
+        print('=' * 30, 'Liste des matchs'.center(30), '=' * 30, sep='\n')
+
+        for index, match in enumerate(matchs, 1):
             print(f'{index}. {match}')
 
         # No other choice possible yet in this report.
@@ -173,13 +192,14 @@ class ReportView:
         Users choose one of the tournament and the
         choice is returned.
         """
-        choice_index = (
+        print('=' * 30, 'Liste des tournois'.center(30), '=' * 30, sep='\n')
+        choice_index = [
             str(index) for index in range(1, len(tournament_list) + 1)
-        )
+        ]
         tournament_menu = [
             f'{index}. {tournament} \n' for index, tournament in zip(choice_index, tournament_list)
         ]
-        choice_index += ('q')
+        choice_index.append('q')
         tournament_menu.append(
             'q. Retour au menu précédent.'
         )

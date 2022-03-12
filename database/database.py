@@ -1,8 +1,8 @@
 from typing import List
 from tinydb import TinyDB, where
-from database.serializer import PlayerSerializer, TournamentSerializer
+from database.serializer import PlayerSerializer, RoundSerializer, TournamentSerializer
 
-from models import Player, Tournament
+from models import Match, Player, Round, Tournament
 
 database = TinyDB(
     'database/Chess_tournament.json',
@@ -11,20 +11,22 @@ database = TinyDB(
 )
 
 
-class Tournament_DB:
-    def __init__(self, database: TinyDB, serializer: TournamentSerializer) -> None:
+class TournamentDB:
+    def __init__(self, database: TinyDB, tournament_serializer: TournamentSerializer) -> None:
         self.tournament_table = database.table('tournaments')
-        self.serializer = serializer
+        self.tournament_serializer = tournament_serializer
+        self.player_serializer = PlayerSerializer()
+        self.round_serializer = RoundSerializer()
 
     def create_tournament(self, tournament: Tournament) -> None:
-        tournament_dict = self.serializer.serialize(tournament)
+        tournament_dict = self.tournament_serializer.serialize(tournament)
         self.tournament_table.insert(tournament_dict)
 
     def read_tournament(self, tournament_name: str) -> Tournament:
         tournament = self.tournament_table.search(
             where('name') == tournament_name
         )[0]
-        tournament = self.serializer.deserialize(tournament)
+        tournament = self.tournament_serializer.deserialize(tournament)
         return tournament
 
     def list_tournaments(self) -> List[Tournament]:
@@ -32,17 +34,26 @@ class Tournament_DB:
         tournament_list = []
         for tournament in table_list:
             tournament_list.append(
-                self.serializer.deserialize(tournament)
+                self.tournament_serializer.deserialize(tournament)
             )
         return tournament_list
 
     def update_tournament(self, tournament_field: dict, tournament_name: str) -> Tournament:
+        rounds = tournament_field.pop('rounds', False)
+        players = tournament_field.pop('players', False)
+        if rounds:
+            tournament_field['rounds'] = [
+                self.round_serializer.serialize(round_) for round_ in rounds
+            ]
+        if players:
+            tournament_field['players'] = [
+                self.player_serializer.serialize(player) for player in players
+            ]
         self.tournament_table.update(
             tournament_field,
             where('name') == tournament_name,
         )
         tournament = self.read_tournament(tournament_name)
-        tournament = self.serializer.deserialize(tournament)
         return tournament
 
     def delete_tournament(self, tournament_name: str) -> bool:
@@ -55,7 +66,7 @@ class Tournament_DB:
         return False
 
 
-class Player_DB:
+class PlayerDB:
     def __init__(self, database: TinyDB, serializer: PlayerSerializer) -> None:
         self.player_table = database.table('players')
         self.serializer = serializer
@@ -86,7 +97,6 @@ class Player_DB:
             where('name') == player_name,
         )
         player = self.read_player(player_name)
-        player = self.serializer.deserialize(player)
         return player
 
     def delete_player(self, player_name: str) -> bool:
@@ -100,150 +110,78 @@ class Player_DB:
 
 
 if __name__ == '__main__':
-    from tinydb.storages import MemoryStorage
-    from random import choices
+    # from tinydb.storages import MemoryStorage
+    # from random import choices
     # database.drop_tables()
-    database = TinyDB(
-        storage=MemoryStorage
-    )
+    # database = TinyDB(
+    #     storage=MemoryStorage
+    # )
     player_serializer = PlayerSerializer()
     tournament_serializer = TournamentSerializer()
     # TOURNAMENT
 
     players = [
-        Player(
-            'Pointud',
-            'Patrick',
-            'birthdate',
-            'gender',
-            4,
-        ),
-        Player(
-            'Sanika',
-            'Florent',
-            'birthdate',
-            'gender',
-            1,
-        ),
-        Player(
-            'Pointud',
-            'Émilie',
-            'birthdate',
-            'gender',
-            2,
-        ),
-        Player(
-            'Sanika',
-            'Nathan',
-            'birthdate',
-            'gender',
-            3,
-        ),
-        Player(
-            'Boyer',
-            'Marie-Huguette',
-            'birthdate',
-            'gender',
-            6,
-        ),
-        Player(
-            'Pointud',
-            'Magdeline',
-            'birthdate',
-            'gender',
-            5,
-        ),
-        Player(
-            'Sanika',
-            'Marina',
-            'birthdate',
-            'gender',
-            7,
-        ),
-        Player(
-            'Sanika',
-            'Johvani',
-            'birthdate',
-            'gender',
-            8,
-        ),
-        Player(
-            'Sanika',
-            'Mathéo',
-            'birthdate',
-            'gender',
-            9,
-        ),
-        Player(
-            'Sanika',
-            'Thomas',
-            'birthdate',
-            'gender',
-            10,
-        ),
-        Player(
-            'Sanika',
-            'Anthony',
-            'birthdate',
-            'gender',
-            11,
-        ),
-        Player(
-            'Sanika',
-            'Olivier',
-            'birthdate',
-            'gender',
-            12,
-        ),
+        Player('Pointud', 'Patrick', 'birthdate', 'gender', 4),
+        Player('Sanika', 'Florent', 'birthdate', 'gender', 1),
+        Player('Pointud', 'Émilie', 'birthdate', 'gender', 2),
+        Player('Sanika', 'Nathan', 'birthdate', 'gender', 3),
+        Player('Boyer', 'Marie-Huguette', 'birthdate', 'gender', 6),
+        Player('Pointud', 'Magdeline', 'birthdate', 'gender', 5),
+        Player('Sanika', 'Marina', 'birthdate', 'gender', 7),
+        Player('Sanika', 'Johvani', 'birthdate', 'gender', 8),
+        Player('Sanika', 'Mathéo', 'birthdate', 'gender', 9),
+        Player('Sanika', 'Thomas', 'birthdate', 'gender', 10),
+        Player('Sanika', 'Anthony', 'birthdate', 'gender', 11),
+        Player('Sanika', 'Olivier', 'birthdate', 'gender', 12),
     ]
-    tournaments = [
-        Tournament(
-            name='Paris Game',
-            place='Paris 11',
-            date='10/11/2022',
-            description='''
-            This is a long long long long
-            long long long long long long
-            long long long long long long
-            description.
-            ''',
-        ),
-        Tournament(
-            name='London Game',
-            place='London street',
-            date='11/10/2022',
-            description='''
-            This is a long long long long
-            long long long long long long
-            long long long long long long
-            description.
-            ''',
-        ),
-        Tournament(
-            name='New York Game',
-            place='New York Ave',
-            date='03/08/2023',
-            description='''
-            This is a long long long long
-            long long long long long long
-            long long long long long long
-            description.
-            ''',
-        ),
-        Tournament(
-            name='Los Angeles Game',
-            place='Los Angeles 11',
-            date='01/05/2022',
-            description='''
-            This is a long long long long
-            long long long long long long
-            long long long long long long
-            description.
-            ''',
-        ),
-    ]
-    for tournament in tournaments:
-        [tournament.add_player(player) for player in choices(players, k=8)]
+    # tournaments = [
+    #     Tournament(
+    #         name='Paris Game',
+    #         place='Paris 11',
+    #         date='10/11/2022',
+    #         description='''
+    #         This is a long long long long
+    #         long long long long long long
+    #         long long long long long long
+    #         description.
+    #         ''',
+    #     ),
+    #     Tournament(
+    #         name='London Game',
+    #         place='London street',
+    #         date='11/10/2022',
+    #         description='''
+    #         This is a long long long long
+    #         long long long long long long
+    #         long long long long long long
+    #         description.
+    #         ''',
+    #     ),
+    #     Tournament(
+    #         name='New York Game',
+    #         place='New York Ave',
+    #         date='03/08/2023',
+    #         description='''
+    #         This is a long long long long
+    #         long long long long long long
+    #         long long long long long long
+    #         description.
+    #         ''',
+    #     ),
+    #     Tournament(
+    #         name='Los Angeles Game',
+    #         place='Los Angeles 11',
+    #         date='01/05/2022',
+    #         description='''
+    #         This is a long long long long
+    #         long long long long long long
+    #         long long long long long long
+    #         description.
+    #         ''',
+    #     ),
+    # ]
+    # for tournament in tournaments:
+    #     [tournament.add_player(player) for player in choices(players, k=8)]
     # tournament2 = Tournament(
     #     name='London Game',
     #     place='London district',
@@ -259,12 +197,31 @@ if __name__ == '__main__':
     #     'place': 'London',
     #     'date': '20/04/2022',
     # }
-    tournament_db = Tournament_DB(database, tournament_serializer)
-    player_db = Player_DB(database, player_serializer)
-    for tournament in tournaments:
-        tournament_db.create_tournament(tournament)
-    for player in players:
-        player_db.create_player(player)
+    # tournament_db = TournamentDB(database, tournament_serializer)
+    # player_db = PlayerDB(database, player_serializer)
+
+    # tournaments = tournament_db.list_tournaments()
+    # matchs = [
+    #     Match(player1, player2) for player1, player2 in zip(
+    #         players[:len(players) // 2], players[len(players) // 2:]
+    #     )
+    # ]
+    # rounds = [
+    #     Round('round1', matchs)
+    # ]
+    # for tournament in tournaments:
+    #     tournament_rounds = [
+    #         Round(f'Round{x}', matchs) for x in '1234'
+    #     ]
+    #     tournament_db.update_tournament(
+    #         {'rounds': tournament_rounds},
+    #         tournament.name,
+    #     )
+        
+    # for tournament in tournaments:
+    #     tournament_db.create_tournament(tournament)
+    # for player in players:
+    #     player_db.create_player(player)
     # tournament_db.create_tournament(tournament1)
     # tournament_db.create_tournament(tournament2)
     # print(tournament_db.read_tournament(tournament2['name']))

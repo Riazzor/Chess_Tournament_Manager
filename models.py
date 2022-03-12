@@ -53,11 +53,11 @@ class Match:
 
 
 class Round:
-    def __init__(self, name: str, matchs: List[Match]) -> None:
+    def __init__(self, name: str, matchs: List[Match], start_round_time: str = "", end_round_time: str = "") -> None:
         self.name = name
         self.matchs = matchs
-        self.start_round_time = ''
-        self.end_round_time = ''
+        self.start_round_time = start_round_time
+        self.end_round_time = end_round_time
 
     def start_round(self) -> None:
         self.start_round_time = datetime.now().strftime('%x - %H:%M')

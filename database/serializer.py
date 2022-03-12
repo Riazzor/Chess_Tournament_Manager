@@ -1,4 +1,4 @@
-from models import Player, Round, Tournament
+from models import Match, Player, Round, Tournament
 
 
 class TournamentSerializer:
@@ -73,10 +73,20 @@ class PlayerSerializer:
 
 
 class RoundSerializer:
+    def __init__(self) -> None:
+        self.match_serializer = MatchSerializer()
+
     def serialize(self, round_: Round) -> dict:
+        match_list = []
+        if matchs := round_.matchs:
+            for match in matchs:
+                match_list.append(
+                    self.match_serializer.serialize(match)
+                )
+
         round_dict = {
             'name': round_.name,
-            'matchs': round_.matchs,
+            'matchs': match_list,
             'start_round_time': round_.start_round_time,
             'end_round_time': round_.end_round_time,
         }
@@ -84,4 +94,42 @@ class RoundSerializer:
         return round_dict
 
     def deserialize(self, round_dict: dict) -> Round:
+        match_list = []
+        if matchs := round_dict.pop('matchs'):
+            for match_dict in matchs:
+                match_list.append(
+                    self.match_serializer.deserialize(
+                        match_dict
+                    )
+                )
+
+        round_dict['matchs'] = match_list
+
         return Round(**round_dict)
+
+
+class MatchSerializer:
+    def __init__(self) -> None:
+        self.player_serializer = PlayerSerializer()
+
+    def serialize(self, match: Match) -> dict:
+        match_dict = {
+            'player1': self.player_serializer.serialize(
+                match.player1,
+            ),
+            'player2': self.player_serializer.serialize(
+                match.player2,
+            ),
+        }
+
+        return match_dict
+
+    def deserialize(self, match_dict: dict) -> Match:
+        return Match(
+            player1=self.player_serializer.deserialize(
+                match_dict['player1']
+            ),
+            player2=self.player_serializer.deserialize(
+                match_dict['player2']
+            ),
+        )
