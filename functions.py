@@ -44,3 +44,19 @@ def sub_menu(func):
             if choice == 'q':
                 quit = True
     return wrapper
+
+
+def menu_title(title: str):
+    def decorator(func):
+        """
+        Decorator for the title of each menu.
+        """
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            print('=' * 30)
+            print(title.upper().center(30))
+            print('=' * 30)
+            return func(*args, **kwargs)
+
+        return wrapper
+    return decorator

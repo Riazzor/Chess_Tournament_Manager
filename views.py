@@ -1,4 +1,4 @@
-from functions import is_date_format
+from functions import is_date_format, menu_title
 
 
 class View:
@@ -7,14 +7,20 @@ class View:
 
     def start_programm(self) -> None:
         print('=' * 30)
+        print('Bonjour'.center(30))
         print('Lancement du programme'.center(30))
         print('=' * 30)
-        
+
     def end_programm(self) -> None:
         print('=' * 30)
-        print('Fin du programme'.center(30), 'Bonne journée.'.center(30), sep='\n')
+        print(
+            'Fin du programme'.center(30),
+            'Bonne journée.'.center(30),
+            sep='\n'
+        )
         print('=' * 30)
 
+    @menu_title('Menu principal')
     def prompt_choice(self):
         options = {
             '1': 'Commencez un tournoi',
@@ -118,8 +124,8 @@ class View:
 
 class ReportView:
 
+    @menu_title('Menu des rapports')
     def main_menu(self) -> str:
-        print('=' * 30, 'Menu rapport'.center(30), '=' * 30, sep='\n')
         menu = '1. Rapport joueurs\n'
         menu += '2. Rapport tournois\n'
         menu += 'q. Quitter\n\t-> '
@@ -150,49 +156,46 @@ class ReportView:
 
         return choice
 
+    @menu_title('Liste des joueurs')
     def players_report(self, players: list) -> str:
         """
         List of current tournament's players.
         """
-        print('=' * 30, 'Liste des joueurs'.center(30), '=' * 30, sep='\n')
-
         for index, player in enumerate(players, 1):
             print(f'{index}. {player}')
 
         # No other choice possible yet in this report.
         return 'q'
 
+    @menu_title('Liste des tours')
     def round_report(self, rounds: list) -> str:
         """
         List of current tournament's rounds.
         """
-        print('=' * 30, 'Liste des tours'.center(30), '=' * 30, sep='\n')
-
         for index, round in enumerate(rounds, 1):
             print(f'{index}. {round}')
 
         # No other choice possible yet in this report.
         return 'q'
 
+    @menu_title('Liste des matchs')
     def match_report(self, matchs: list) -> str:
         """
         List of current tournament's matchs.
         """
-        print('=' * 30, 'Liste des matchs'.center(30), '=' * 30, sep='\n')
-
         for index, match in enumerate(matchs, 1):
             print(f'{index}. {match}')
 
         # No other choice possible yet in this report.
         return 'q'
 
+    @menu_title('Liste des tournois')
     def tournament_report(self, tournament_list) -> str:
         """
         Displays the given tournament list.
         Users choose one of the tournament and the
         choice is returned.
         """
-        print('=' * 30, 'Liste des tournois'.center(30), '=' * 30, sep='\n')
         choice_index = [
             str(index) for index in range(1, len(tournament_list) + 1)
         ]
