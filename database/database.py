@@ -2,7 +2,7 @@ from typing import List
 from tinydb import TinyDB, where
 from database.serializer import PlayerSerializer, RoundSerializer, TournamentSerializer
 
-from models import Match, Player, Round, Tournament
+from models import Player, Tournament
 
 database = TinyDB(
     'database/Chess_tournament.json',
@@ -217,7 +217,7 @@ if __name__ == '__main__':
     #         {'rounds': tournament_rounds},
     #         tournament.name,
     #     )
-        
+
     # for tournament in tournaments:
     #     tournament_db.create_tournament(tournament)
     # for player in players:

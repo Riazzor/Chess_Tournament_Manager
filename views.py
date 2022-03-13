@@ -41,9 +41,9 @@ class View:
         print('Entrez les informations du tournoi :')
         name = input('Nom du tournoi : ')
         place = input('Emplacement : ')
-        date = ''
+        date = input('Date du tournoi (jj/mm/aaaa): ')
         while not is_date_format(date):
-            date = input('Date du tournoi (jj/mm/aaaa): ')
+            date = input('Attention au format (jj/mm/aaaa): ')
         description = input('Description :\n')
         tournament_information = {
             'name': name,
@@ -59,14 +59,20 @@ class View:
 
         name = input('Nom du joueur : ')
         surname = input('Prénom du joueur : ')
-        birthdate = ''
+        birthdate = input('Date de naissance du joueur (JJ/MM/AAAA) : ')
         while not is_date_format(birthdate):
-            birthdate = input('Date de naissance du joueur : ')
-        gender = input('Genre du joueur : ')
+            birthdate = input('Attention au format (JJ/MM/AAAA) : ')
+        gender = input('Genre du joueur (M/F) : ').upper()
+        while gender not in ('M', 'F'):
+            gender = input('M ou F :').upper()
         rank = input('Classement général du joueur : ')
+        while not rank.isdigit():
+            rank = input('Entier positif : ')
         score = input(
             'Entrez le score du joueur (0 par défaut) : '
-        ) or default_score
+        )
+        if not score.isdigit():
+            score = default_score
 
         player_information = {
             'name': name,
