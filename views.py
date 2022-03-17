@@ -163,15 +163,31 @@ class ReportView:
         return choice
 
     @menu_title('Liste des joueurs')
-    def players_report(self, players: list) -> str:
+    def players_report(self, player_list: list) -> str:
         """
         List of current tournament's players.
         """
-        for index, player in enumerate(players, 1):
-            print(f'{index}. {player}')
+        choice_index = [
+            str(index) for index in range(1, len(player_list) + 1)
+        ]
+        player_menu = [
+            f'{index}. {player} \n' for index, player in zip(choice_index, player_list)
+        ]
+        choice_index.append('q')
+        player_menu.append(
+            'q. Retour au menu précédent.'
+        )
+        possible_choice = '/'.join(choice_index)
+        player_menu = ''.join(player_menu)
+        player_menu += '\n\t-> '
 
-        # No other choice possible yet in this report.
-        return 'q'
+        player_choice = input(player_menu)
+        while player_choice not in choice_index:
+            player_choice = input(
+                f'Choisissez entre ({possible_choice})\n\t-> '
+            )
+
+        return player_choice
 
     @menu_title('Liste des tours')
     def round_report(self, rounds: list) -> str:
