@@ -1,0 +1,2 @@
+tinydb==4.7.0
+flake8-html==0.4.1
