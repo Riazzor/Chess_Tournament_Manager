@@ -1,18 +1,19 @@
 import re
 import functools
-from database.database import PlayerDB, database
+from database.database import PlayerDB, databases
 
 from database.database import TournamentDB
 from database.serializer import PlayerSerializer, TournamentSerializer
 
 
 def table_factory(table: str):
+    player_serializer = PlayerSerializer()
+    player_database = PlayerDB(databases['player_database'], player_serializer)
     if table == 'tournaments':
         tournament_serializer = TournamentSerializer()
-        return TournamentDB(database, tournament_serializer)
+        return TournamentDB(databases, tournament_serializer, player_database)
     elif table == 'players':
-        player_serializer = PlayerSerializer()
-        return PlayerDB(database, player_serializer)
+        return player_database
     raise ValueError(f'{table} is not a valid value')
 
 

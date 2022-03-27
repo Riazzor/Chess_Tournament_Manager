@@ -1,11 +1,15 @@
 from datetime import datetime
 from typing import List
+import uuid
 
 
 class Player:
     def __init__(
-        self, name: str, surname: str, birthdate: str, gender: str, rank: int, score: int = 0
+        self, name: str, surname: str,
+        birthdate: str, gender: str,
+        rank: int, score: int = 0, id: str = None,
     ) -> None:
+        self.id = id or str(uuid.uuid4())
         self.name = name
         self.surname = surname
         self.birthdate = birthdate
@@ -35,7 +39,6 @@ class Match:
     def update_score(self, score1, score2) -> None:
         self.player1.score += score1
         self.player2.score += score2
-        return None
 
     def __repr__(self) -> str:
         return (
@@ -84,9 +87,10 @@ class Round:
 class Tournament:
     def __init__(
         self, name: str, place: str, date: str,
-        description: str, nbr_round: int = 4,
+        description: str, nbr_round: int = 4, id: str = None,
         rounds: List[Round] = None, players: List[Player] = None,
     ) -> None:
+        self.id = id or str(uuid.uuid4())
         self.name = name
         self.place = place
         self.date = date

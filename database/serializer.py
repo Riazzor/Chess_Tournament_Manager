@@ -1,3 +1,4 @@
+from typing import List
 from models import Match, Player, Round, Tournament
 
 
@@ -7,58 +8,55 @@ class TournamentSerializer:
         self.round_serializer = RoundSerializer()
 
     def serialize(self, tournament: Tournament) -> dict:
-        player_list = []
-        if players := tournament.players:
-            for player in players:
-                player_list.append(
-                    self.player_serializer.serialize(player)
+        player_id_list = []
+        if tournament.players:
+            for player in tournament.players:
+                player_id_list.append(
+                    player.id
                 )
 
         round_list = []
-        if rounds := tournament.rounds:
-            for round_ in rounds:
+        if tournament.rounds:
+            for round_ in tournament.rounds:
                 round_list.append(
                     self.round_serializer(round_)
                 )
 
         tournament_dict = {
+            'id': tournament.id,
             'name': tournament.name,
             'place': tournament.place,
             'date': tournament.date,
             'description': tournament.description,
             'nbr_round': tournament.nbr_round,
             'rounds': round_list,
-            'players': player_list,
+            'players_id': player_id_list,
         }
         return tournament_dict
 
-    def deserialize(self, tournament_dict: dict) -> Tournament:
-        round_list = []
-        player_list = []
-
+    def deserialize(self, tournament_dict: dict, player_list: List[Player]) -> Tournament:
         rounds = tournament_dict.pop('rounds')
-        players = tournament_dict.pop('players')
+        _ = tournament_dict.pop('players_id')
+        tournament_id = tournament_dict.pop('id')
+
+        tournament = Tournament(**tournament_dict)
+        tournament.id = tournament_id
+        for player in player_list:
+            tournament.add_player(player)
 
         if rounds:
             for round_dict in rounds:
-                round_list.append(
-                    self.round_serializer.deserialize(round_dict)
+                tournament.add_round(
+                    self.round_serializer.deserialize(round_dict, player_list)
                 )
 
-        if players:
-            for player_dict in players:
-                player_list.append(
-                    self.player_serializer.deserialize(player_dict)
-                )
-        tournament_dict['rounds'] = round_list
-        tournament_dict['players'] = player_list
-
-        return Tournament(**tournament_dict)
+        return tournament
 
 
 class PlayerSerializer:
     def serialize(self, player: Player) -> dict:
         player_dict = {
+            'player_id': player.id,
             'name': player.name,
             'surname': player.surname,
             'birthdate': player.birthdate,
@@ -69,20 +67,24 @@ class PlayerSerializer:
         return player_dict
 
     def deserialize(self, player_dict: dict) -> Player:
-        return Player(**player_dict)
+        player_id = player_dict.pop('player_id')
+        player = Player(**player_dict)
+        player.id = player_id
+        return player
 
 
 class RoundSerializer:
-    def __init__(self) -> None:
-        self.match_serializer = MatchSerializer()
 
     def serialize(self, round_: Round) -> dict:
         match_list = []
-        if matchs := round_.matchs:
-            for match in matchs:
-                match_list.append(
-                    self.match_serializer.serialize(match)
-                )
+        matchs = round_.matchs
+        for match in matchs:
+            match_list.append(
+                {
+                    'player1_id': match.player1.id,
+                    'player2_id': match.player2.id,
+                }
+            )
 
         round_dict = {
             'name': round_.name,
@@ -93,43 +95,26 @@ class RoundSerializer:
 
         return round_dict
 
-    def deserialize(self, round_dict: dict) -> Round:
+    def deserialize(self, round_dict: dict, player_list: List[Player]) -> Round:
         match_list = []
-        if matchs := round_dict.pop('matchs'):
+        matchs = round_dict.pop('matchs')
+        # To reduce the number of loop we will delete players already assigned to a match.
+        # To keep the original player_list intact, we assign a new one as the player_list
+        # will be reused for all the rounds.
+        player_list = list(player_list)
+        if matchs:
             for match_dict in matchs:
+                for player in list(player_list):
+                    if player.id == match_dict['player1_id']:
+                        player1 = player
+                        player_list.remove(player)
+                    elif player.id == match_dict['player2_id']:
+                        player2 = player
+                        player_list.remove(player)
                 match_list.append(
-                    self.match_serializer.deserialize(
-                        match_dict
-                    )
+                    Match(player1, player2)
                 )
 
         round_dict['matchs'] = match_list
 
         return Round(**round_dict)
-
-
-class MatchSerializer:
-    def __init__(self) -> None:
-        self.player_serializer = PlayerSerializer()
-
-    def serialize(self, match: Match) -> dict:
-        match_dict = {
-            'player1': self.player_serializer.serialize(
-                match.player1,
-            ),
-            'player2': self.player_serializer.serialize(
-                match.player2,
-            ),
-        }
-
-        return match_dict
-
-    def deserialize(self, match_dict: dict) -> Match:
-        return Match(
-            player1=self.player_serializer.deserialize(
-                match_dict['player1']
-            ),
-            player2=self.player_serializer.deserialize(
-                match_dict['player2']
-            ),
-        )
