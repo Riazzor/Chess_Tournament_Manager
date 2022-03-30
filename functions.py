@@ -32,6 +32,14 @@ def is_date_format(input_date) -> bool:
     return False
 
 
+def is_positive_number(input_number: str) -> bool:
+    if not input_number.isdigit():
+        return False
+    if int(input_number) <= 0:
+        return False
+    return True
+
+
 def sub_menu(func):
     """
     Decorator for menu functions. Allows navigation back
@@ -44,14 +52,15 @@ def sub_menu(func):
             choice = func(*args, **kwargs)
             if choice == 'q':
                 quit = True
+        return choice
     return wrapper
 
 
 def menu_title(title: str):
+    """
+    Decorator for the title of each menu.
+    """
     def decorator(func):
-        """
-        Decorator for the title of each menu.
-        """
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             print('=' * 30)
