@@ -1,4 +1,4 @@
-from functions import is_date_format, menu_title
+from functions import is_date_format, is_positive_number, menu_title
 
 
 class View:
@@ -79,19 +79,18 @@ class View:
 
         return tournament_information
 
+    @menu_title('Information du joueur')
     def get_player_info(self, default_score=0) -> dict:
-        print('===================\nEntrez les informations du joueur :')
-
         name = input('Nom du joueur : ')
         surname = input('Prénom du joueur : ')
         birthdate = input('Date de naissance du joueur (JJ/MM/AAAA) : ')
         while not is_date_format(birthdate):
             birthdate = input('Attention au format (JJ/MM/AAAA) : ')
-        gender = input('Genre du joueur (M/F) : ').upper()
-        while gender not in ('M', 'F'):
-            gender = input('M ou F :').upper()
+        gender = input('Genre du joueur (H/F) : ').upper()
+        while gender not in ('H', 'F'):
+            gender = input('H ou F : ').upper()
         rank = input('Classement général du joueur : ')
-        while not rank.isdigit():
+        while not is_positive_number(rank):
             rank = input('Entier positif : ')
         score = input(
             'Entrez le score du joueur (0 par défaut) : '
@@ -110,8 +109,8 @@ class View:
 
         return player_information
 
+    @menu_title('Information de la ronde')
     def get_round_info(self) -> dict:
-        print('Entrez les informations de la ronde :')
         name = input('Nom de la ronde : ')
         round_information = {
             'name': name,
@@ -119,6 +118,7 @@ class View:
 
         return round_information
 
+    @menu_title('Menu ronde')
     def start_matchs(self, round_nbr) -> bool:
         print(f'Commencer le round {round_nbr} ?')
         choice = ''
@@ -135,6 +135,7 @@ class View:
             choice = input('Tapez "fin" : ').lower()
         return True
 
+    # TODO Diplay player's score at end of round
     def enter_match_winner(self, p1_name, p2_name) -> int:  # 1 or 2 or 3
         """
             1.   Joueur 1
@@ -191,7 +192,9 @@ class ReportView:
     def players_report(self, player_list: list) -> str:
         """
         List of current tournament's players.
+        Return the user's choosen player.
         """
+        print('Selectionnez un joueur pour modification ou q pour quitter :\n')
         choice_index = [
             str(index) for index in range(1, len(player_list) + 1)
         ]
