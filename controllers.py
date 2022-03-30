@@ -236,8 +236,6 @@ class ReportController:
         report_option[choice](tournament)
         return choice
 
-    # XXX Not tested
-
     def tournaments_list_choice(self) -> Optional[Tournament]:
         """
         Diplays all Tournaments and return the users' choice
@@ -263,11 +261,19 @@ class ReportController:
         """
         Displays all players name and surname from a given tournament.
         """
-        # 2 id player
-        # 3 players.
-        # XXX Correct this method
+        players_list = self.sort_players(
+            self.players_list(tournament)
+        )
+        # We retrieve only the name and surname for the view
+        players_info = [
+            f'{player.name} {player.surname}' for player in players_list]
+
+        choice = self.report_view.players_report(players_info)
+
+        return choice
+
+    def sort_players(self, players: List[Player]):
         order_choice = self.report_view.report_sort_choice()
-        players = self.players_list(tournament)
         # Alphabétique
         if order_choice == '1':
             players_list = sorted(
@@ -280,13 +286,8 @@ class ReportController:
                 players,
                 key=lambda player: (player.rank)
             )
-        # We retrieve only the name and surname for the view
-        players_info = [
-            f'{player.name} {player.surname}' for player in players_list]
 
-        choice = self.report_view.players_report(players_info)
-
-        return choice
+        return players_list
 
     def matchs_list(self, tournament: Tournament) -> List[Match]:
         """
@@ -318,7 +319,6 @@ class ReportController:
         """
         return tournament.rounds
 
-    # XXX Not tested
     @sub_menu
     def rounds_report(self, tournament: Tournament) -> str:
         """
