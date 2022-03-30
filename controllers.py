@@ -5,26 +5,76 @@ from views import ReportView, View
 
 
 class Controller:
-    def __init__(self, view) -> None:
-        self.view: View = view
+    def __init__(self, view: View, report_controller) -> None:
+        self.view = view
+        self.tournament_db = table_factory('tournaments')
+        self.player_db = table_factory('players')
+        self.report_controller = report_controller
 
-    def run(self) -> None:
-        self.initiate_tournament()
+    @sub_menu
+    def run(self) -> str:
+        if not hasattr(self, 'tournament'):
+            self.initiate_tournament()
 
-        for i in range(self.tournament.nbr_round):
-            # Round
-            self.sort_players()
-            self.create_round()
+        if self.remaining_round:
+            choice = self.game_menu()
 
-            if self.view.start_matchs(round_nbr=i+1):
-                self.play_matchs()
+        return choice
 
-            for match in self.round.matchs:
-                self.enter_score(match)
+    @sub_menu
+    def game_menu(self) -> str:
+        choice = self.view.game_menu()
+        choices = {
+            '1': self.launch_round,
+            '2': self.update_player_rank,
+            'q': lambda: None,
+        }
+        choices[choice]()
+        return choice
 
-        return None
+    def launch_round(self) -> None:
+        self.sort_players()
+        self.create_round()
+
+        self.play_matchs()
+
+        for match in self.round.matchs:
+            self.enter_score(match)
+        # TODO end game : 1. display player's score/ 2. offer to update general ranking
+        self.remaining_round -= 1
+
+    def update_player_rank(self) -> None:
+        player_list = self.report_controller.players_list(
+            self.tournament
+        )
+        players_info = [
+            f'{player.name} {player.surname} - rank : {player.rank}' for player in player_list]
+
+        choice = self.report_controller.report_view.players_report(
+            players_info)
+        if choice == 'q':
+            return
+
+        index = int(choice) - 1
+        player = player_list[index]
+        player_info = players_info[index]
+        new_rank = self.view.update_player_rank(player_info)
+        player.update_rank(new_rank)
+        # prompt players
+        # choose
+        # update choice
+
+    def save_tournament(self, data, tournament_id) -> None:
+        if type(data) == dict:
+            self.tournament_db.update_tournament(
+                data,
+                tournament_id,
+            )
+        else:
+            self.tournament_db.create_tournament(data)
 
     def initiate_tournament(self) -> None:
+        # TODO Choix nouveau tournoi ou charger ancien
         # Create tournament and players:
         self.create_tournament()
         # Player
@@ -32,9 +82,7 @@ class Controller:
             self.tournament.add_player(
                 self.create_player()
             )
-        print(self.tournament)
-
-        return None
+        self.remaining_round = self.tournament.nbr_round
 
     def play_matchs(self) -> None:
         self.round.start_round()
@@ -42,8 +90,6 @@ class Controller:
         self.view.end_matchs()
 
         self.round.end_round()
-
-        return None
 
     def enter_score(self, match: Match) -> None:
         player1, player2 = match.player1, match.player2
@@ -61,7 +107,6 @@ class Controller:
             scores = (0.5, 0.5)
 
         match.update_score(*scores)
-        return None
 
     def sort_players(self) -> None:
         """
@@ -76,8 +121,6 @@ class Controller:
         )
         self.tournament.players = players_list
 
-        return None
-
     def create_tournament(self) -> None:
         tournament_info = self.view.get_tournament_info()
         tournament = Tournament(
@@ -88,7 +131,7 @@ class Controller:
         )
         self.tournament = tournament
 
-        return None
+        self.tournament_db.create_tournament(tournament)
 
     def create_player(self) -> Player:
         player_info = self.view.get_player_info()
@@ -101,6 +144,7 @@ class Controller:
             int(player_info['score'])
         )
 
+        self.player_db.create_player(player)
         return player
 
     def create_round(self) -> None:
@@ -117,8 +161,12 @@ class Controller:
         self.tournament.add_round(
             self.round
         )
-
-        return None
+        self.save_tournament(
+            {
+                'rounds': self.tournament.rounds,
+            },
+            self.tournament.id
+        )
 
     def create_matchs(self) -> List[Match]:
         """
@@ -333,7 +381,12 @@ class ReportController:
 
 
 class MainController:
-    def __init__(self, view: View, tournament_controller: Controller, report_controller: ReportController) -> None:
+    def __init__(
+        self,
+        view: View,
+        tournament_controller: Controller,
+        report_controller: ReportController,
+    ) -> None:
         self.view = view
         self.tournament_controller = tournament_controller
         self.report_controller = report_controller
@@ -345,7 +398,7 @@ class MainController:
 
     @sub_menu
     def main_prompt(self) -> str:
-        choice = self.view.prompt_choice()
+        choice = self.view.main_menu()
         choices = {
             '1': self.tournament_controller.run,
             '2': self.report_controller.run,

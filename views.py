@@ -21,7 +21,7 @@ class View:
         print('=' * 30)
 
     @menu_title('Menu principal')
-    def prompt_choice(self):
+    def main_menu(self):
         options = {
             '1': 'Commencez un tournoi',
             '2': 'Affichez les rapports',
@@ -37,6 +37,31 @@ class View:
             option = input(menu)
         return option
 
+    @menu_title('Menu tournoi')
+    def game_menu(self) -> str:
+        options = {
+            '1': 'Lancer la ronde',
+            '2': "Mettre à jour le rang d'un joueur",
+            'q': 'Quitter'
+        }
+        menu = ''
+        for index, text in options.items():
+            menu += f'{index}. {text}\n'
+        menu += '\t-> '
+        option = input(menu)
+        while option not in ('1', '2', 'q'):
+            print('Choisissez parmis 1/2/q')
+            option = input(menu)
+        return option
+
+    def update_player_rank(self, player_info: str) -> int:
+        print(player_info)
+        new_rank = input('Entrez le nouveau classement du joueur : ')
+        while not is_positive_number(new_rank):
+            new_rank = input('Entrez un nombre positif : ')
+        return int(new_rank)
+
+    @menu_title('Information du tournoi')
     def get_tournament_info(self) -> dict:
         print('Entrez les informations du tournoi :')
         name = input('Nom du tournoi : ')
