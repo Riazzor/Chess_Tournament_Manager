@@ -1,11 +1,11 @@
-from controllers import MainController, Controller, ReportController
+from controllers import MainController, TournamentController, ReportController
 from views import View
 
 
 view = View()
-tournament_controller = Controller(view)
 
 report_controller = ReportController()
+tournament_controller = TournamentController(view, report_controller)
 main_controller = MainController(view, tournament_controller, report_controller)
 
 main_controller.run()
