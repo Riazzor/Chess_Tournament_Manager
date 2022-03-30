@@ -4,6 +4,8 @@ import uuid
 
 
 class Player:
+    players_instance = []
+
     def __init__(
         self, name: str, surname: str,
         birthdate: str, gender: str,
@@ -14,11 +16,37 @@ class Player:
         self.surname = surname
         self.birthdate = birthdate
         self.gender = gender
-        self.rank = rank
         self.score = score
+        self.update_rank(rank)
 
     def __repr__(self) -> str:
-        return f'Player : {self.name} {self.surname}'
+        return f'Player : {self.name} {self.surname} {self.rank}'
+
+    def update_rank(self, rank: int) -> None:
+        # First we remove if already existent instance
+        if self.id in [player.id for player in self.players_instance]:
+            self.players_instance.pop(self.rank - 1)
+
+        # Insert at new rank
+        self.players_instance.insert(rank - 1, self)
+
+        # update every player's rank
+        for index, player in enumerate(self.players_instance, 1):
+            player.rank = index
+
+    def update_rank(self, rank: int) -> None:
+        # First we remove if already existent instance
+        if self in self.players_instance:
+            self.players_instance.pop(self.rank)
+        else:
+            self.rank = rank
+
+        # Insert at new rank
+        self.players_instance.insert(rank - 1, self)
+
+        # update every player's rank
+        for player in self.players_instance[rank - 1:]:
+            player.rank = self.players_instance.index(player) + 1
 
 
 class Match:
