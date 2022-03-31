@@ -70,11 +70,15 @@ class View:
         while not is_date_format(date):
             date = input('Attention au format (jj/mm/aaaa): ')
         description = input('Description :\n')
+        nbr_player = input('Nombre de joueur : ')
+        while not is_positive_number(nbr_player):
+            nbr_player = input('Entier positif : ')
         tournament_information = {
             'name': name,
             'place': place,
             'date': date,
             'description': description,
+            'nbr_player': nbr_player,
         }
 
         return tournament_information

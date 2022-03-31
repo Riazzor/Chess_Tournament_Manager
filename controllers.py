@@ -247,7 +247,7 @@ class TournamentController:
         # Create tournament and players:
         self.create_tournament()
         # Player
-        for _ in range(8):
+        for _ in range(self.nbr_player):
             self.tournament.add_player(
                 self.create_player()
             )
@@ -299,6 +299,8 @@ class TournamentController:
             tournament_info['description'],
         )
         self.tournament = tournament
+
+        self.nbr_player = tournament_info['nbr_player']
 
         self.tournament_db.create_tournament(tournament)
 
