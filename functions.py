@@ -63,9 +63,9 @@ def menu_title(title: str):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            print('=' * 30)
-            print(title.upper().center(30))
-            print('=' * 30)
+            print('=' * 50)
+            print(title.upper().center(50))
+            print('=' * 50)
             return func(*args, **kwargs)
 
         return wrapper

@@ -37,6 +37,24 @@ class View:
             option = input(menu)
         return option
 
+    @menu_title('Aucun tournoi de chargé')
+    def start_tournament(self) -> str:
+        options = {
+            '1': 'Créer un nouveau tournoi',
+            '2': 'Charger un tournoi existant',
+            'q': 'Quitter',
+        }
+        menu = ''
+        for index, text in options.items():
+            menu += f'{index}. {text}\n'
+        menu += '\t-> '
+
+        option = input(menu)
+        while option not in ('1', '2', 'q'):
+            print('Choisissez parmis 1/2/q')
+            option = input(menu)
+        return option
+
     @menu_title('Menu tournoi')
     def game_menu(self) -> str:
         options = {

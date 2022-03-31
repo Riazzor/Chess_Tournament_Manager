@@ -64,7 +64,9 @@ class ReportController:
         """
         First display all tournament and ask for choice on follow up.
         """
-        tournament = self.tournaments_list_choice()
+        tournament = self.tournaments_list_choice(
+            self.tournament_list()
+        )
         if not tournament:
             return 'q'
         choice = self.report_view.menu_detail_tournament()
@@ -77,11 +79,14 @@ class ReportController:
         report_option[choice](tournament)
         return choice
 
-    def tournaments_list_choice(self) -> Optional[Tournament]:
+    def tournament_list(self):
+        return self.tournament_database.list_tournaments()
+
+    def tournaments_list_choice(self, tournament_list: List[Tournament]) -> Optional[Tournament]:
         """
         Diplays all Tournaments and return the users' choice
         """
-        tournaments_list = self.tournament_database.list_tournaments()
+        tournaments_list = tournament_list
         # We retrieve only the name and date for the view
         tournaments_info = [
             f'{tournament.name}  -  {tournament.date}' for tournament in tournaments_list
@@ -182,16 +187,18 @@ class TournamentController:
 
     @sub_menu
     def run(self) -> str:
-        if not hasattr(self, 'tournament'):
-            self.initiate_tournament()
+        if not hasattr(self, 'tournament') or not self.tournament:
+            return self.initiate_tournament()
 
-        if self.remaining_round:
+        if self.remaining_round > 0:
             choice = self.game_menu()
 
         return choice
 
     @sub_menu
     def game_menu(self) -> str:
+        if self.remaining_round <= 0:
+            return 'q'
         choice = self.view.game_menu()
         choices = {
             '1': self.launch_round,
@@ -202,7 +209,6 @@ class TournamentController:
         return choice
 
     def launch_round(self) -> None:
-        self.sort_players()
         self.create_round()
 
         self.play_matchs()
@@ -211,6 +217,13 @@ class TournamentController:
             self.enter_score(match)
         # TODO end game : 1. display player's score/ 2. offer to update general ranking
         self.remaining_round -= 1
+
+        self.save_tournament(
+            {
+                'rounds': self.tournament.rounds
+            },
+            self.tournament.id,
+        )
 
     def update_player_rank(self) -> None:
         player_list = self.report_controller.players_list(
@@ -242,16 +255,22 @@ class TournamentController:
         else:
             self.tournament_db.create_tournament(data)
 
-    def initiate_tournament(self) -> None:
+    @sub_menu
+    def initiate_tournament(self) -> str:
         # TODO Choix nouveau tournoi ou charger ancien
         # Create tournament and players:
-        self.create_tournament()
-        # Player
-        for _ in range(self.nbr_player):
-            self.tournament.add_player(
-                self.create_player()
-            )
-        self.remaining_round = self.tournament.nbr_round
+        choice = self.view.start_tournament()()
+        choices = {
+            '1': self.create_tournament,
+            '2': self.load_tournament,
+            'q': lambda: True,
+        }
+
+        # When you want to quit or tournament succesfully loaded/created :
+        if choices[choice]():
+            return 'q'
+
+        return choice
 
     def play_matchs(self) -> None:
         self.round.start_round()
@@ -284,13 +303,42 @@ class TournamentController:
         If two players have the same score,
         we use their rank.
         """
-        players_list = sorted(
-            self.tournament.players,
-            key=(lambda player: (player.score, player.rank))
-        )
+        players_list = list(reversed(
+            sorted(
+                self.tournament.players,
+                key=(lambda player: (player.score, player.rank))
+            )
+        ))
         self.tournament.players = players_list
 
-    def create_tournament(self) -> None:
+    def load_tournament(self) -> bool:
+        tournament_list = self.report_controller.tournament_list()
+
+        unfinished_tournament = []
+        for tournament in tournament_list:
+            # rounds are created only when the previous is over.
+            if not tournament.rounds[-1].end_round_time or tournament.nbr_round != len(tournament.rounds):
+                unfinished_tournament.append(tournament)
+
+        self.tournament = self.report_controller.tournaments_list_choice(
+            unfinished_tournament
+        )
+
+        if not self.tournament:
+            return False
+
+        # Since rounds are created one at a time, the remaining rounds don't exist yet.
+        self.remaining_round = (
+            self.tournament.nbr_round - len(self.tournament.rounds)
+        )
+
+        # Round can be created but not played yet :
+        if not self.tournament.rounds[-1].end_round_time:
+            self.remaining_round += 1
+
+        return True
+
+    def create_tournament(self) -> bool:
         tournament_info = self.view.get_tournament_info()
         tournament = Tournament(
             tournament_info['name'],
@@ -299,10 +347,19 @@ class TournamentController:
             tournament_info['description'],
         )
         self.tournament = tournament
+        self.remaining_round = self.tournament.nbr_round
 
-        self.nbr_player = tournament_info['nbr_player']
+        nbr_player = tournament_info['nbr_player']
+
+        # Player
+        for _ in range(nbr_player):
+            self.tournament.add_player(
+                self.create_player()
+            )
 
         self.tournament_db.create_tournament(tournament)
+
+        return True
 
     def create_player(self) -> Player:
         player_info = self.view.get_player_info()
@@ -319,9 +376,15 @@ class TournamentController:
         return player
 
     def create_round(self) -> None:
+        # Check if round already created before but not played :
+        if not self.tournament.rounds[-1].end_round_time:
+            self.round = self.tournament.rounds[-1]
+            return
+
         round_info = self.view.get_round_info()
 
         # Match
+        self.sort_players()
         match_list = self.create_matchs()
 
         self.round = Round(
