@@ -192,8 +192,29 @@ class TournamentController:
 
         if self.remaining_round > 0:
             choice = self.game_menu()
+        else:
+            self.end_tournament()
+            choice = 'q'
 
         return choice
+
+    def end_tournament(self) -> None:
+        """
+        Update the players rank according to their score and ranking.
+        Displays the ranking for the user.
+        """
+        self.sort_players()
+
+        player_list = []
+        for index, player in enumerate(self.tournament.players):
+            player.update_rank(index + 1)
+            player_list.append(
+                f'{player.rank}. {player.name} {player.surname} : {player.score}'
+            )
+
+        self.view.display_ranking(player_list)
+
+        self.tournament = None
 
     @sub_menu
     def game_menu(self) -> str:
@@ -215,7 +236,6 @@ class TournamentController:
 
         for match in self.round.matchs:
             self.enter_score(match)
-        # TODO end game : 1. display player's score/ 2. offer to update general ranking
         self.remaining_round -= 1
 
         self.save_tournament(
@@ -257,9 +277,8 @@ class TournamentController:
 
     @sub_menu
     def initiate_tournament(self) -> str:
-        # TODO Choix nouveau tournoi ou charger ancien
         # Create tournament and players:
-        choice = self.view.start_tournament()()
+        choice = self.view.start_tournament()
         choices = {
             '1': self.create_tournament,
             '2': self.load_tournament,
@@ -300,6 +319,7 @@ class TournamentController:
         """
         At the beginning of each round, we sort the players
         according to their score.
+        When the tournament end, we sort again before displaying final ranking.
         If two players have the same score,
         we use their rank.
         """
@@ -312,6 +332,11 @@ class TournamentController:
         self.tournament.players = players_list
 
     def load_tournament(self) -> bool:
+        """
+        Fetchs all unfinished tournament and makes the user choose
+        one tournament.
+        Return False if impossible.
+        """
         tournament_list = self.report_controller.tournament_list()
 
         unfinished_tournament = []

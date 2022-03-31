@@ -6,19 +6,19 @@ class View:
         pass
 
     def start_programm(self) -> None:
-        print('=' * 30)
-        print('Bonjour'.center(30))
-        print('Lancement du programme'.center(30))
-        print('=' * 30)
+        print('=' * 50)
+        print('Bonjour'.center(50))
+        print('Lancement du programme'.center(50))
+        print('=' * 50)
 
     def end_programm(self) -> None:
-        print('=' * 30)
+        print('=' * 50)
         print(
-            'Fin du programme'.center(30),
-            'Bonne journée.'.center(30),
+            'Fin du programme'.center(50),
+            'Bonne journée.'.center(50),
             sep='\n'
         )
-        print('=' * 30)
+        print('=' * 50)
 
     @menu_title('Menu principal')
     def main_menu(self):
@@ -71,6 +71,11 @@ class View:
             print('Choisissez parmis 1/2/q')
             option = input(menu)
         return option
+
+    @menu_title('Classement des joueurs')
+    def display_ranking(self, player_list: list):
+        for player in player_list:
+            print(player)
 
     def update_player_rank(self, player_info: str) -> int:
         print(player_info)
@@ -157,7 +162,6 @@ class View:
             choice = input('Tapez "fin" : ').lower()
         return True
 
-    # TODO Diplay player's score at end of round
     def enter_match_winner(self, p1_name, p2_name) -> int:  # 1 or 2 or 3
         """
             1.   Joueur 1

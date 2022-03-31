@@ -41,8 +41,7 @@ class PlayerDB:
         # For some f*cking unknow reason, tinydb sometimes returns an instance without the id
         # (but it returned the player so the id is clearly in the database !!)
         # and the program crash
-        if 'player_id' not in player_dict:
-            player_dict['player_id'] = player_id
+        player_dict['player_id'] = player_id
         player = self.serializer.deserialize(player_dict)
         return player
 
