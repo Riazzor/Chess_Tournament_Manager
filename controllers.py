@@ -1,6 +1,7 @@
 from typing import List, Optional
 from functions import sub_menu, table_factory
 from models import Match, Player, Round, Tournament
+from random import choice as random_choice
 from views import ReportView, View
 
 
@@ -323,12 +324,12 @@ class TournamentController:
         If two players have the same score,
         we use their rank.
         """
-        players_list = list(reversed(
+        players_list = list(
             sorted(
                 self.tournament.players,
                 key=(lambda player: (player.score, player.rank))
             )
-        ))
+        )
         self.tournament.players = players_list
 
     def load_tournament(self) -> bool:
@@ -437,35 +438,56 @@ class TournamentController:
         so on so that the last player of S1
         plays against the last player of S2.
         """
-        players_list = self.tournament.players
-        middle = len(players_list) // 2
-        is_not_even = len(players_list) % 2
-        firs_half, second_half = players_list[:middle], players_list[middle:]
-        match_list = [
-            (player1, player2)
-            for player1, player2 in zip(firs_half, second_half)
-        ]
-
-        matchs = list()
-        for match in match_list:
-            player1, player2 = match
-            matchs.append(
+        # 1st round :
+        if self.remaining_round == self.tournament.nbr_round:
+            players_list = self.tournament.players
+            middle = len(players_list) // 2
+            is_not_even = len(players_list) % 2
+            firs_half, second_half = players_list[:middle], players_list[middle:]
+            matchs = [
                 Match(player1, player2)
-            )
+                for player1, player2 in zip(firs_half, second_half)
+            ]
 
-        # should not happen but this part handles an odd number of players :
-        # since it's not supposed to happen, I'm importing choice here so it
-        # happens only on rare occasion instead of each application launch.
-        if is_not_even:
-            from random import choice
-            # a random player will be choosed to play a second time.
-            matchs.append(
-                Match(
-                    players_list[-1],           # player1
-                    choice(players_list[:-1])   # player2
+            # should not happen but this part handles an odd number of players :
+            if is_not_even:
+                # a random player will be choosed to play a second time.
+                matchs.append(
+                    Match(
+                        players_list[-1],           # player1
+                        random_choice(players_list[:-1])   # player2
+                    )
                 )
+
+            return matchs
+
+        # other rounds
+        players_to_match = self.tournament.players
+        matchs = []
+        while len(players_to_match):
+            player = players_to_match.pop(0)
+
+            # If player already played against everyone and the tournament is not over,
+            # We wipe the opponents table
+            if len(player.opponents) == len(self.tournament.players) - 1:
+                player.opponents = []
+            for index, challenger in enumerate(players_to_match):
+                if challenger.id not in player.opponents:
+                    player.opponents.append(challenger.id)
+                    challenger.opponents.append(player.id)
+                    players_to_match.pop(index)
+                    break
+            else:
+                # If we get here, it means an odd number of player:
+                # a random player will be choosed to play a second time.
+                challenger = random_choice(
+                    [challenger for challenger in self.tournament.players
+                        if challenger.id != player.id]
+                )   # player2
+
+            matchs.append(
+                Match(player, challenger)
             )
-            del choice
 
         return matchs
 

@@ -37,10 +37,7 @@ class TournamentSerializer:
     def deserialize(self, tournament_dict: dict, player_list: List[Player]) -> Tournament:
         rounds = tournament_dict.pop('rounds')
         _ = tournament_dict.pop('players_id')
-        tournament_id = tournament_dict.pop('id')
-
         tournament = Tournament(**tournament_dict)
-        tournament.id = tournament_id
         for player in player_list:
             tournament.add_player(player)
 
@@ -56,20 +53,19 @@ class TournamentSerializer:
 class PlayerSerializer:
     def serialize(self, player: Player) -> dict:
         player_dict = {
-            'player_id': player.id,
+            'id': player.id,
             'name': player.name,
             'surname': player.surname,
             'birthdate': player.birthdate,
             'gender': player.gender,
             'rank': player.rank,
             'score': player.score,
+            'opponents': player.opponents,
         }
         return player_dict
 
     def deserialize(self, player_dict: dict) -> Player:
-        player_id = player_dict.pop('player_id')
         player = Player(**player_dict)
-        player.id = player_id
         return player
 
 

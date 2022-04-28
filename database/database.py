@@ -29,7 +29,7 @@ class PlayerDB:
 
     def read_player(self, player_id: str) -> Player:
         players = self.player_table.search(
-            where('player_id') == player_id
+            where('id') == player_id
         )
 
         if not players:
@@ -41,7 +41,7 @@ class PlayerDB:
         # For some f*cking unknow reason, tinydb sometimes returns an instance without the id
         # (but it returned the player so the id is clearly in the database !!)
         # and the program crash
-        player_dict['player_id'] = player_id
+        player_dict['id'] = player_id
         player = self.serializer.deserialize(player_dict)
         return player
 
@@ -57,14 +57,14 @@ class PlayerDB:
     def update_player(self, player_field: dict, player_id: str) -> Player:
         self.player_table.update(
             player_field,
-            where('player_id') == player_id,
+            where('id') == player_id,
         )
         player = self.read_player(player_id)
         return player
 
     def delete_player(self, player_id: str) -> bool:
         removed_id = self.player_table.remove(
-            where('player_id') == player_id,
+            where('id') == player_id,
         )
         if removed_id:
             return True
