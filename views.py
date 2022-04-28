@@ -5,6 +5,15 @@ class View:
     def __init__(self) -> None:
         pass
 
+    @menu_title('warning')
+    def message(self, msg: str) -> None:
+        """
+        Used to send a message to the user.
+        """
+        if len(msg) < 41:
+            msg = ('/!\\'.center(5) + msg + '/!\\'.center(5)).center(50)
+        print(msg)
+
     def start_programm(self) -> None:
         print('=' * 50)
         print('Bonjour'.center(50))
