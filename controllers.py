@@ -206,14 +206,14 @@ class TournamentController:
         """
         self.sort_players()
 
-        player_list = []
-        for index, player in enumerate(self.tournament.players):
-            player.update_rank(index + 1)
-            player_list.append(
+        players_list = []
+        for index, player in enumerate(self.tournament.players, 1):
+            player.update_rank(index)
+            players_list.append(
                 f'{player.rank}. {player.name} {player.surname} : {player.score}'
             )
 
-        self.view.display_ranking(player_list)
+        self.view.display_ranking(players_list)
 
         self.tournament = None
 
@@ -247,11 +247,9 @@ class TournamentController:
         )
 
     def update_player_rank(self) -> None:
-        player_list = self.report_controller.players_list(
-            self.tournament
-        )
+        players_list = list(self.tournament.players)
         players_info = [
-            f'{player.name} {player.surname} - rank : {player.rank}' for player in player_list]
+            f'{player.name} {player.surname} - rank : {player.rank}' for player in players_list]
 
         choice = self.report_controller.report_view.players_report(
             players_info)
@@ -259,15 +257,12 @@ class TournamentController:
             return
 
         index = int(choice) - 1
-        player = player_list[index]
+        player = players_list[index]
         player_info = players_info[index]
         new_rank = self.view.update_player_rank(player_info)
         player.update_rank(new_rank)
-        # prompt players
-        # choose
-        # update choice
 
-    def save_tournament(self, data, tournament_id) -> None:
+    def save_tournament(self, data, tournament_id=None) -> None:
         if type(data) == dict:
             self.tournament_db.update_tournament(
                 data,
@@ -275,6 +270,15 @@ class TournamentController:
             )
         else:
             self.tournament_db.create_tournament(data)
+
+    def save_player(self, data, player_id=None) -> None:
+        if type(data) == dict:
+            self.player_db.update_player(
+                data,
+                player_id,
+            )
+        else:
+            self.player_db.create_player(data)
 
     @sub_menu
     def initiate_tournament(self) -> str:
@@ -316,7 +320,14 @@ class TournamentController:
 
         match.update_score(*scores)
 
-    def sort_players(self) -> None:
+        for player in (player1, player2):
+            data = {
+                'score': player.score,
+                'opponents': player.opponents,
+            }
+            self.save_player(data, player.id)
+
+    def sort_players(self, reverse=True) -> None:
         """
         At the beginning of each round, we sort the players
         according to their score.
@@ -324,10 +335,15 @@ class TournamentController:
         If two players have the same score,
         we use their rank.
         """
+        def key(player):
+            if reverse:
+                return (player.score, -1 * player.rank)
+            return (player.score, player.rank)
         players_list = list(
             sorted(
                 self.tournament.players,
-                key=(lambda player: (player.score, player.rank))
+                key=key,
+                reverse=reverse,
             )
         )
         self.tournament.players = players_list
@@ -343,7 +359,12 @@ class TournamentController:
         unfinished_tournament = []
         for tournament in tournament_list:
             # rounds are created only when the previous is over.
-            if not tournament.rounds[-1].end_round_time or tournament.nbr_round != len(tournament.rounds):
+            has_round = bool(tournament.rounds)
+            has_unfinished_round = bool(
+                has_round and not tournament.rounds[-1].end_round_time)
+            has_remaining_round = bool(
+                tournament.nbr_round != len(tournament.rounds))
+            if has_unfinished_round or has_remaining_round:
                 unfinished_tournament.append(tournament)
 
         self.tournament = self.report_controller.tournaments_list_choice(
@@ -359,7 +380,7 @@ class TournamentController:
         )
 
         # Round can be created but not played yet :
-        if not self.tournament.rounds[-1].end_round_time:
+        if self.tournament.rounds and not self.tournament.rounds[-1].end_round_time:
             self.remaining_round += 1
 
         return True
@@ -371,19 +392,20 @@ class TournamentController:
             tournament_info['place'],
             tournament_info['date'],
             tournament_info['description'],
+            tournament_info['nbr_rounds'],
         )
         self.tournament = tournament
         self.remaining_round = self.tournament.nbr_round
 
-        nbr_player = tournament_info['nbr_player']
+        nbr_players = int(tournament_info['nbr_players'])
 
         # Player
-        for _ in range(nbr_player):
+        for _ in range(nbr_players):
             self.tournament.add_player(
                 self.create_player()
             )
 
-        self.tournament_db.create_tournament(tournament)
+        self.save_tournament(tournament)
 
         return True
 
@@ -395,22 +417,21 @@ class TournamentController:
             player_info['birthdate'],
             player_info['gender'],
             int(player_info['rank']),
-            int(player_info['score'])
+            float(player_info['score'])
         )
 
-        self.player_db.create_player(player)
+        self.save_player(player)
         return player
 
     def create_round(self) -> None:
         # Check if round already created before but not played :
-        if not self.tournament.rounds[-1].end_round_time:
+        if self.tournament.rounds and not self.tournament.rounds[-1].end_round_time:
             self.round = self.tournament.rounds[-1]
             return
 
         round_info = self.view.get_round_info()
 
         # Match
-        self.sort_players()
         match_list = self.create_matchs()
 
         self.round = Round(
@@ -431,23 +452,30 @@ class TournamentController:
     def create_matchs(self) -> List[Match]:
         """
         The swiss system is used :
-        The list of player (after being sorted) is split in
+        The list of player is split in
         two sublist (S1 and S2).
         The first of S1 plays against the first of S2,
         the second of S1 against the second of S2, and
         so on so that the last player of S1
         plays against the last player of S2.
+        If the player already played against the opponents,
+        he will play against the next in line.
         """
+        matchs = []
+
         # 1st round :
         if self.remaining_round == self.tournament.nbr_round:
-            players_list = self.tournament.players
+            self.sort_players(reverse=False)
+            players_list = list(self.tournament.players)
             middle = len(players_list) // 2
             is_not_even = len(players_list) % 2
             firs_half, second_half = players_list[:middle], players_list[middle:]
-            matchs = [
-                Match(player1, player2)
-                for player1, player2 in zip(firs_half, second_half)
-            ]
+            for player1, player2 in zip(firs_half, second_half):
+                matchs.append(
+                    Match(player1, player2)
+                )
+                player1.opponents.append(player2.id)
+                player2.opponents.append(player1.id)
 
             # should not happen but this part handles an odd number of players :
             if is_not_even:
@@ -462,8 +490,8 @@ class TournamentController:
             return matchs
 
         # other rounds
-        players_to_match = self.tournament.players
-        matchs = []
+        self.sort_players()
+        players_to_match = list(self.tournament.players)
         while len(players_to_match):
             player = players_to_match.pop(0)
 
@@ -479,11 +507,14 @@ class TournamentController:
                     break
             else:
                 # If we get here, it means an odd number of player:
-                # a random player will be choosed to play a second time.
-                challenger = random_choice(
-                    [challenger for challenger in self.tournament.players
-                        if challenger.id != player.id]
-                )   # player2
+                # Swiss system says the lone player gets the point as if winning
+                if not players_to_match:
+                    player.score += 1
+                    break
+                # player didn't played against everyone but his remaining
+                # opponents are already assigned
+                else:
+                    challenger = players_to_match.pop(0)
 
             matchs.append(
                 Match(player, challenger)

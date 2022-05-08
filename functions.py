@@ -32,10 +32,14 @@ def is_date_format(input_date) -> bool:
     return False
 
 
-def is_positive_number(input_number: str) -> bool:
+def is_positive_number(input_number: str, integer=True) -> bool:
     if not input_number.isdigit():
-        return False
-    if int(input_number) <= 0:
+        if any([num not in '0123456789.' for num in input_number]) or not input_number:
+            return False
+        if float(input_number) < 0 or integer:
+            return False
+        return True
+    if int(input_number) == 0:
         return False
     return True
 

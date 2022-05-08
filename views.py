@@ -1,3 +1,4 @@
+from math import ceil, log
 from functions import is_date_format, is_positive_number, menu_title
 
 
@@ -102,21 +103,31 @@ class View:
         while not is_date_format(date):
             date = input('Attention au format (jj/mm/aaaa): ')
         description = input('Description :\n')
-        nbr_player = input('Nombre de joueur : ')
-        while not is_positive_number(nbr_player):
-            nbr_player = input('Entier positif : ')
+        nbr_players = input('Nombre de joueur : ')
+        while not is_positive_number(nbr_players):
+            nbr_players = input('Entier positif : ')
+
+        # According to the swiss system, number of round is found
+        # using the binary logarithm of the number of player :
+        default_rounds = str(ceil(
+            log(int(nbr_players), 2)
+        ))
+        nbr_rounds = input('Nombre de tours : ') or default_rounds
+        while not is_positive_number(nbr_rounds):
+            nbr_rounds = input('Entier positif : ') or default_rounds
         tournament_information = {
             'name': name,
             'place': place,
             'date': date,
             'description': description,
-            'nbr_player': nbr_player,
+            'nbr_players': nbr_players,
+            'nbr_rounds': nbr_rounds,
         }
 
         return tournament_information
 
     @menu_title('Information du joueur')
-    def get_player_info(self, default_score=0) -> dict:
+    def get_player_info(self, default_score='0') -> dict:
         name = input('Nom du joueur : ')
         surname = input('Prénom du joueur : ')
         birthdate = input('Date de naissance du joueur (JJ/MM/AAAA) : ')
@@ -131,7 +142,7 @@ class View:
         score = input(
             'Entrez le score du joueur (0 par défaut) : '
         )
-        if not score.isdigit():
+        if not is_positive_number(score):
             score = default_score
 
         player_information = {

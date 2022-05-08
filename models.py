@@ -9,7 +9,7 @@ class Player:
     def __init__(
         self, name: str, surname: str,
         birthdate: str, gender: str,
-        rank: int, score: int = 0, id: str = None,
+        rank: int, score: float = 0, id: str = None,
         opponents: list = None
     ) -> None:
         self.id = id or str(uuid.uuid4())
@@ -81,10 +81,10 @@ class Round:
         self.end_round_time = end_round_time
 
     def start_round(self) -> None:
-        self.start_round_time = datetime.now().strftime('%x - %H:%M')
+        self.start_round_time = datetime.now().strftime('%d/%m/%Y - %H:%M')
 
     def end_round(self) -> None:
-        self.end_round_time = datetime.now().strftime('%x - %H:%M')
+        self.end_round_time = datetime.now().strftime('%d/%m/%Y - %H:%M')
 
     def __repr__(self) -> str:
         representation = 'Round : \n'
