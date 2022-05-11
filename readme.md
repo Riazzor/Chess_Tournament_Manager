@@ -17,7 +17,8 @@ Pensez juste à le changer dans les commandes.
 
 # Flake 8
 Assurez-vous que flake8-html est installé en entrant la commande suivante :
->python3 -m pip install flake8-html
+>python3 -m pip install flake8-html<br>
+(py pour windows)
 
 Entrez ensuite cette commande pour générer le rapport flake8 :
 >flake8 --format html --max-line-length 119 --htmldir=flake8-report --extend-exclude .venv
@@ -30,4 +31,6 @@ créé est ouvrez dans votre navigateur le fichier index.html
 
 ## Fonctionnement :
 Chaque menu donne le choix avec un numéro à entrer pour séléctionner un <br>
-élément de la liste ou 'q' pour revenir au menu précédent/quitter.
+élément de la liste ou 'q' pour revenir au menu précédent ou quitter.
+
+2 sous menu sont présents dans le menu principal : un pour le tournoi et un pour les rapports.

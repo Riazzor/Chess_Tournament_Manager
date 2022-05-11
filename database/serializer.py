@@ -30,6 +30,7 @@ class TournamentSerializer:
             'description': tournament.description,
             'nbr_round': tournament.nbr_round,
             'rounds': round_list,
+            'time_control': tournament.time_control,
             'players_id': player_id_list,
         }
         return tournament_dict

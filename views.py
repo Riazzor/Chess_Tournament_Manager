@@ -1,5 +1,5 @@
 from math import ceil, log
-from functions import is_date_format, is_positive_number, menu_title
+from functions import is_date_format, is_positive_number, menu_title, window_width
 
 
 class View:
@@ -11,24 +11,24 @@ class View:
         """
         Used to send a message to the user.
         """
-        if len(msg) < 41:
-            msg = ('/!\\'.center(5) + msg + '/!\\'.center(5)).center(50)
-        print(msg)
+        if len(msg) <= window_width - 10:
+            msg = ('/!\\'.center(5) + msg + '/!\\'.center(5))
+        print(msg.center(window_width))
 
     def start_programm(self) -> None:
-        print('=' * 50)
-        print('Bonjour'.center(50))
-        print('Lancement du programme'.center(50))
-        print('=' * 50)
+        print('=' * window_width)
+        print('Bonjour'.center(window_width))
+        print('Lancement du programme'.center(window_width))
+        print('=' * window_width)
 
     def end_programm(self) -> None:
-        print('=' * 50)
+        print('=' * window_width)
         print(
-            'Fin du programme'.center(50),
-            'Bonne journée.'.center(50),
+            'Fin du programme'.center(window_width),
+            'Bonne journée.'.center(window_width),
             sep='\n'
         )
-        print('=' * 50)
+        print('=' * window_width)
 
     @menu_title('Menu principal')
     def main_menu(self):
@@ -83,15 +83,25 @@ class View:
         return option
 
     @menu_title('Classement des joueurs')
-    def display_ranking(self, player_list: list):
+    def display_score(self, player_list: list):
         for player in player_list:
             print(player)
 
-    def update_player_rank(self, player_info: str) -> int:
+    def update_rank(self):
+        response = '0'
+        while response.lower() not in 'on':
+            response = input('Voulez-vous mettre à jour le rang des joueurs (o/n)?') or '0'
+
+        return {
+            'o': 1,
+            'n': 0,
+        }[response.lower()]
+
+    def update_player_rank(self, player_info: str, current_rank: int = -1) -> int:
         print(player_info)
-        new_rank = input('Entrez le nouveau classement du joueur : ')
+        new_rank = input('Entrez le nouveau classement du joueur : ') or str(current_rank)
         while not is_positive_number(new_rank):
-            new_rank = input('Entrez un nombre positif : ')
+            new_rank = input('Entrez un nombre positif : ') or str(current_rank)
         return int(new_rank)
 
     @menu_title('Information du tournoi')
@@ -112,9 +122,19 @@ class View:
         default_rounds = str(ceil(
             log(int(nbr_players), 2)
         ))
-        nbr_rounds = input('Nombre de tours : ') or default_rounds
+        nbr_rounds = input(
+            f'Nombre de tours ({default_rounds}): ') or default_rounds
         while not is_positive_number(nbr_rounds):
             nbr_rounds = input('Entier positif : ') or default_rounds
+
+        time_menu = '1. Bullet\n'
+        time_menu += '2. Blitz\n'
+        time_menu += '3. Coup rapide'
+        time_menu += '\n\t-> '
+        time_control = input(f'Contrôle du temps: \n{time_menu}') or '0'
+        while time_control not in '123':
+            time_control = input(time_menu) or '0'
+
         tournament_information = {
             'name': name,
             'place': place,
@@ -122,6 +142,7 @@ class View:
             'description': description,
             'nbr_players': nbr_players,
             'nbr_rounds': nbr_rounds,
+            'time_control': time_control,
         }
 
         return tournament_information
@@ -165,17 +186,8 @@ class View:
 
         return round_information
 
-    @menu_title('Menu ronde')
-    def start_matchs(self, round_nbr) -> bool:
-        print(f'Commencer le round {round_nbr} ?')
-        choice = ''
-        while choice not in ('o', 'n'):
-            choice = input(' O/N : ').lower()
-        if choice == 'n':
-            return False
-        return True
-
-    def end_matchs(self) -> bool:
+    def end_matchs(self, time_control) -> bool:
+        print(f'Rappel : controle du temps pour ce tournoi = {time_control}')
         print('À la fin du tour, tapez "fin".')
         choice = ''
         while choice != 'fin':

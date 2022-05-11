@@ -3,6 +3,10 @@ from functions import sub_menu, table_factory
 from models import Match, Player, Round, Tournament
 from random import choice as random_choice
 from views import ReportView, View
+import ipdb
+import sys
+
+sys.breakpointhook = ipdb.set_trace
 
 
 class ReportController:
@@ -191,11 +195,7 @@ class TournamentController:
         if not hasattr(self, 'tournament') or not self.tournament:
             return self.initiate_tournament()
 
-        if self.remaining_round > 0:
-            choice = self.game_menu()
-        else:
-            self.end_tournament()
-            choice = 'q'
+        choice = self.game_menu()
 
         return choice
 
@@ -208,18 +208,21 @@ class TournamentController:
 
         players_list = []
         for index, player in enumerate(self.tournament.players, 1):
-            player.update_rank(index)
+            # player.update_rank(index)
             players_list.append(
-                f'{player.rank}. {player.name} {player.surname} : {player.score}'
+                f'{player.rank}. {player.name} {player.surname} finale score : {player.score}'
             )
 
-        self.view.display_ranking(players_list)
+        self.view.display_score(players_list)
+        if self.view.update_rank():
+            self.update_all_player_rank()
 
         self.tournament = None
 
     @sub_menu
     def game_menu(self) -> str:
         if self.remaining_round <= 0:
+            self.end_tournament()
             return 'q'
         choice = self.view.game_menu()
         choices = {
@@ -259,8 +262,34 @@ class TournamentController:
         index = int(choice) - 1
         player = players_list[index]
         player_info = players_info[index]
-        new_rank = self.view.update_player_rank(player_info)
+
+        new_rank = self.view.update_player_rank(player_info, player.rank)
         player.update_rank(new_rank)
+
+        for player in Player.players_instance:
+            self.save_player(
+                {
+                    'rank': player.rank,
+                },
+                player.id
+            )
+        # breakpoint()
+
+    def update_all_player_rank(self):
+        player_list = self.tournament.players
+
+        for player in player_list:
+            player_info = f'{player.name} {player.surname} - rank : {player.rank}'
+            new_rank = self.view.update_player_rank(player_info, player.rank)
+            player.update_rank(new_rank)
+
+        for player in player_list:
+            self.save_player(
+                {
+                    'rank': player.rank,
+                },
+                player.id
+            )
 
     def save_tournament(self, data, tournament_id=None) -> None:
         if type(data) == dict:
@@ -299,7 +328,7 @@ class TournamentController:
     def play_matchs(self) -> None:
         self.round.start_round()
 
-        self.view.end_matchs()
+        self.view.end_matchs(self.tournament.time_control)
 
         self.round.end_round()
 
@@ -367,6 +396,10 @@ class TournamentController:
             if has_unfinished_round or has_remaining_round:
                 unfinished_tournament.append(tournament)
 
+        if not unfinished_tournament:
+            self.view.message('Aucun tournoi de commencé')
+            return False
+
         self.tournament = self.report_controller.tournaments_list_choice(
             unfinished_tournament
         )
@@ -383,16 +416,26 @@ class TournamentController:
         if self.tournament.rounds and not self.tournament.rounds[-1].end_round_time:
             self.remaining_round += 1
 
+        self.game_menu()
+
         return True
 
     def create_tournament(self) -> bool:
         tournament_info = self.view.get_tournament_info()
+        time_control = {
+            '1': 'Bullet',
+            '2': 'Blitz',
+            '3': 'Coup rapide',
+        }
         tournament = Tournament(
             tournament_info['name'],
             tournament_info['place'],
             tournament_info['date'],
             tournament_info['description'],
-            tournament_info['nbr_rounds'],
+            int(tournament_info['nbr_rounds']),
+            time_control[
+                tournament_info['time_control']
+            ]
         )
         self.tournament = tournament
         self.remaining_round = self.tournament.nbr_round
@@ -405,7 +448,13 @@ class TournamentController:
                 self.create_player()
             )
 
+        # We need to save the players only when they are all created
+        # for case where the players are not given in order
+        for player in self.tournament.players:
+            self.save_player(player)
         self.save_tournament(tournament)
+
+        self.game_menu()
 
         return True
 
@@ -420,7 +469,6 @@ class TournamentController:
             float(player_info['score'])
         )
 
-        self.save_player(player)
         return player
 
     def create_round(self) -> None:

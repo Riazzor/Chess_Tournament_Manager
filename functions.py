@@ -5,6 +5,8 @@ from database.database import PlayerDB, databases
 from database.database import TournamentDB
 from database.serializer import PlayerSerializer, TournamentSerializer
 
+window_width = 50
+
 
 def table_factory(table: str):
     player_serializer = PlayerSerializer()
@@ -67,9 +69,9 @@ def menu_title(title: str):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            print('=' * 50)
-            print(title.upper().center(50))
-            print('=' * 50)
+            print('=' * window_width)
+            print(title.upper().center(window_width))
+            print('=' * window_width)
             return func(*args, **kwargs)
 
         return wrapper

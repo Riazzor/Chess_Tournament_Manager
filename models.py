@@ -1,6 +1,11 @@
 from datetime import datetime
+import sys
 from typing import List
+import ipdb
 import uuid
+
+
+sys.breakpointhook = ipdb.set_trace
 
 
 class Player:
@@ -28,8 +33,10 @@ class Player:
 
     def update_rank(self, rank: int) -> None:
         # First we remove if already existent instance
-        if self.id in [player.id for player in self.players_instance]:
-            self.players_instance.pop(self.rank - 1)
+        for index, id in enumerate([player.id for player in self.players_instance]):
+            if self.id == id:
+                self.players_instance.pop(index)
+                break
 
         # Insert at new rank
         self.players_instance.insert(rank - 1, self)
@@ -105,8 +112,8 @@ class Round:
 class Tournament:
     def __init__(
         self, name: str, place: str, date: str,
-        description: str, nbr_round: int = 4, id: str = None,
-        rounds: List[Round] = None, players: List[Player] = None,
+        description: str, nbr_round: int = 4, time_control: str = None,
+        id: str = None, rounds: List[Round] = None, players: List[Player] = None,
     ) -> None:
         self.id = id or str(uuid.uuid4())
         self.name = name
@@ -116,6 +123,7 @@ class Tournament:
         self.nbr_round = nbr_round
         self.rounds = rounds or []
         self.players = players or []
+        self.time_control = time_control
 
     def add_player(self, player):
         self.players.append(player)

@@ -248,7 +248,6 @@ if __name__ == '__main__':
     player_db = PlayerDB(player_database, player_serializer)
     tournament_db = TournamentDB(databases, tournament_serializer, player_db)
 
-    # tournaments = tournament_db.list_tournaments()
     matchs = [
         Match(player1, player2) for player1, player2 in zip(
             players[:len(players) // 2], players[len(players) // 2:]
@@ -258,9 +257,6 @@ if __name__ == '__main__':
         tournament_db.create_tournament(tournament)
     for player in players:
         player_db.create_player(player)
-    # rounds = [
-    #     Round('round1', matchs)
-    # ]
     for tournament in tournaments:
         tournament_rounds = [
             Round(f'Round{x}', matchs) for x in '1234'
