@@ -288,7 +288,7 @@ class TournamentController:
             )
 
     def save_tournament(self, data, tournament_id=None) -> None:
-        if type(data) == dict:
+        if type(data) is dict:
             self.tournament_db.update_tournament(
                 data,
                 tournament_id,
@@ -297,7 +297,7 @@ class TournamentController:
             self.tournament_db.create_tournament(data)
 
     def save_player(self, data, player_id=None) -> None:
-        if type(data) == dict:
+        if type(data) is dict:
             self.player_db.update_player(
                 data,
                 player_id,
