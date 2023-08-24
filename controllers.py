@@ -3,10 +3,6 @@ from functions import sub_menu, table_factory
 from models import Match, Player, Round, Tournament
 from random import choice as random_choice
 from views import ReportView, View
-import ipdb
-import sys
-
-sys.breakpointhook = ipdb.set_trace
 
 
 class ReportController:

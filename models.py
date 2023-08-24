@@ -1,11 +1,6 @@
 from datetime import datetime
-import sys
 from typing import List
-import ipdb
 import uuid
-
-
-sys.breakpointhook = ipdb.set_trace
 
 
 class Player:
